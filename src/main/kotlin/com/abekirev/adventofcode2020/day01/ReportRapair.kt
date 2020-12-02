@@ -115,12 +115,12 @@ private fun <T> Sequence<T>.drop(size: Int): DropResult<T> {
     )
 }
 
-interface Tuple<T> {
+private interface Tuple<T> {
     operator fun get(index: Int): T
     fun asList(): List<T>
 }
 
-class SingleTuple<T>(private val elem: T) : Tuple<T> {
+private class SingleTuple<T>(private val elem: T) : Tuple<T> {
     private val list by lazy { listOf(elem) }
     override fun get(index: Int): T = if (index == 0) elem else throw IndexOutOfBoundsException()
     override fun asList(): List<T> = list
@@ -134,7 +134,7 @@ class SingleTuple<T>(private val elem: T) : Tuple<T> {
 
 }
 
-class ListTuple<T>(private val list: List<T>) : Tuple<T> {
+private class ListTuple<T>(private val list: List<T>) : Tuple<T> {
     override fun get(index: Int): T = list[index]
     override fun asList(): List<T> = list
     override fun equals(other: Any?): Boolean = when {
