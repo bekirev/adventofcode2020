@@ -11,33 +11,33 @@ fun main() {
 
 private fun partOne() {
     println(
-        result(CharacterRangeEntryPasswordPolicyFactory)
+        result(CharacterRangeEntryPasswordPolicyFactoryMethod)
     )
 }
 
 private fun partTwo() {
     println(
-        result(CharacterPositionEntryPasswordPolicyFactory)
+        result(CharacterPositionEntryPasswordPolicyFactoryMethod)
     )
 }
 
-private fun result(policyFactory: PasswordPolicyFactory) =
+private fun result(policyFactoryMethod: PasswordPolicyFactoryMethod) =
     Path.of("input", "day02", "input.txt")
         .linesFromResource()
         .asSequence()
-        .map { parsePolicyPasswordPair(it, policyFactory) }
+        .map { parsePolicyPasswordPair(it, policyFactoryMethod) }
         .count { (policy, password) ->
             policy.checkPassword(password)
         }
 
 private typealias Password = String
 
-private fun parsePolicyPasswordPair(str: String, policyFactory: PasswordPolicyFactory): Pair<PasswordPolicy, Password> {
+private fun parsePolicyPasswordPair(str: String, policyFactoryMethod: PasswordPolicyFactoryMethod): Pair<PasswordPolicy, Password> {
     val (policyStr, passwordStr) = str.split(":")
     fun parsePolicy(str: String): PasswordPolicy {
         val (rangeStr, charStr) = str.split(" ")
         val (leftNumber, rightNumber) = rangeStr.split("-")
-        return policyFactory.create(
+        return policyFactoryMethod.create(
             charStr.first(),
             leftNumber.toInt() - 1,
             rightNumber.toInt() - 1
@@ -46,11 +46,11 @@ private fun parsePolicyPasswordPair(str: String, policyFactory: PasswordPolicyFa
     return parsePolicy(policyStr) to passwordStr.trim()
 }
 
-private interface PasswordPolicyFactory {
+private fun interface PasswordPolicyFactoryMethod {
     fun create(char: Char, leftNumber: Int, rightNumber: Int): PasswordPolicy
 }
 
-private object CharacterRangeEntryPasswordPolicyFactory : PasswordPolicyFactory {
+private object CharacterRangeEntryPasswordPolicyFactoryMethod : PasswordPolicyFactoryMethod {
     override fun create(char: Char, leftNumber: Int, rightNumber: Int): PasswordPolicy =
         CharacterRangeEntryPasswordPolicy(
             char,
@@ -58,7 +58,7 @@ private object CharacterRangeEntryPasswordPolicyFactory : PasswordPolicyFactory 
         )
 }
 
-private object CharacterPositionEntryPasswordPolicyFactory : PasswordPolicyFactory {
+private object CharacterPositionEntryPasswordPolicyFactoryMethod : PasswordPolicyFactoryMethod {
     override fun create(char: Char, leftNumber: Int, rightNumber: Int): PasswordPolicy =
         CharacterPositionEntryPasswordPolicy(
             char,
