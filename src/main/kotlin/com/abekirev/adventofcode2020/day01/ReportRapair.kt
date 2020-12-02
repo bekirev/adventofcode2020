@@ -67,7 +67,7 @@ private fun <T> Sequence<T>.tuples(size: Int): Sequence<Tuple<T>> {
     }
     check(size > 0) { "Size should be a positive number" }
     return when (size) {
-        1 -> map { ListTuple(listOf(it)) }
+        1 -> map { SingleTuple(it) }
         2 -> pairs()
         else -> sequence {
             val prevTuples = mutableMapOf<Int, MutableSet<Tuple<T>>>()
