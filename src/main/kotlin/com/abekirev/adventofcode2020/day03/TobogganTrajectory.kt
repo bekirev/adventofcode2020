@@ -6,23 +6,34 @@ import kotlin.streams.asSequence
 
 fun main() {
     partOne()
+    partTwo()
 }
 
-private val DIRECTION = Direction(1, 3)
-
 private fun partOne() =
-    println(treeHits(DIRECTION))
+    println(
+        treeHits(Direction(1, 3))
+    )
 
-private fun treeHits(direction: Direction) =
+private fun partTwo() =
+    println(
+        treeHits(Direction(1, 1)) *
+        treeHits(Direction(1, 3)) *
+        treeHits(Direction(1, 5)) *
+        treeHits(Direction(1, 7)) *
+        treeHits(Direction(2, 1))
+    )
+
+private fun treeHits(direction: Direction): Long =
     slope()
         .mapIndexed { index, row ->
             if (index % direction.down == 0) {
-                row[index * direction.right % row.size]
+                row[index / direction.down * direction.right % row.size]
             } else {
                 null
             }
         }
         .count(MapTile.TREE::equals)
+        .toLong()
 
 private typealias Slope = Sequence<List<MapTile>>
 
