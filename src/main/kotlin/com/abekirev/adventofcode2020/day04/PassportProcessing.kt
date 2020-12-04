@@ -14,12 +14,35 @@ import kotlin.streams.asSequence
 
 fun main() {
     partOne()
+    partTwo()
 }
 
 private fun partOne() {
-    val passportValidator = RequiredFieldsPassportValidator(
-        FieldType.values().filterNot(COUNTRY_ID::equals).toSet()
+    printResult(
+        RequiredFieldsPassportValidator(
+            FieldType.values().filterNot(COUNTRY_ID::equals).toSet()
+        )
     )
+}
+
+private fun partTwo() {
+    printResult(
+        FieldCheckPassportValidator(
+            BIRTH_YEAR to RangeFieldValueValidator(1920..2002),
+            ISSUE_YEAR to RangeFieldValueValidator(2010..2020),
+            EXPIRATION_YEAR to RangeFieldValueValidator(2020..2030),
+            HEIGHT to RangeWithPostfixDeterminerFieldValueValidator(
+                "cm" to 150..193,
+                "in" to 59..76
+            ),
+            HAIR_COLOR to RegexValueValidator(Regex("""#([0-9]|[a-f]){6}""")),
+            EYE_COLOR to OneOfValueValidator("amb", "blu", "brn", "gry", "grn", "hzl", "oth"),
+            PASSPORT_ID to RegexValueValidator(Regex("""\d{9}"""))
+        )
+    )
+}
+
+private fun printResult(passportValidator: PassportValidator) {
     println(
         input()
             .count(passportValidator::validate)
@@ -39,6 +62,65 @@ private class RequiredFieldsPassportValidator(
             .all { it != null }
 }
 
+private class FieldCheckPassportValidator private constructor(
+    private val fieldValueValidators: Map<FieldType, FieldValueValidator>,
+) : PassportValidator {
+    constructor(vararg fieldValueValidators: Pair<FieldType, FieldValueValidator>) : this(fieldValueValidators.toMap())
+
+    override fun validate(passport: Passport): Boolean =
+        fieldValueValidators.asSequence()
+            .all { (type, fieldValueValidator) ->
+                fieldValueValidator.validate(passport[type])
+            }
+}
+
+private interface FieldValueValidator {
+    fun validate(value: FieldValue?): Boolean
+}
+
+private class RangeFieldValueValidator(
+    private val range: IntRange,
+) : FieldValueValidator {
+    override fun validate(value: FieldValue?): Boolean = value?.toIntOrNull()?.let(range::contains) ?: false
+}
+
+private typealias Determiner = String
+
+private class RangeWithPostfixDeterminerFieldValueValidator private constructor(
+    private val rules: Map<Determiner, IntRange>,
+) : FieldValueValidator {
+    constructor(vararg rules: Pair<Determiner, IntRange>) : this(rules.toMap())
+
+    override fun validate(value: FieldValue?): Boolean =
+        if (value != null) {
+            rules.asSequence()
+                .filter { (determiner, _) ->
+                    value.endsWith(determiner)
+                }
+                .any { (determiner, range) ->
+                    value.dropLast(determiner.length).toIntOrNull()?.let(range::contains) ?: false
+                }
+        } else {
+            false
+        }
+}
+
+private class RegexValueValidator(
+    private val regex: Regex,
+) : FieldValueValidator {
+    override fun validate(value: FieldValue?): Boolean =
+        value?.matches(regex) ?: false
+}
+
+private class OneOfValueValidator private constructor(
+    private val allowedValues: Set<FieldValue>,
+) : FieldValueValidator {
+    constructor(vararg values: FieldValue) : this(values.toSet())
+
+    override fun validate(value: FieldValue?): Boolean =
+        value in allowedValues
+}
+
 private fun input() = sequence<Passport> {
     val tokens = Path.of("input", "day04", "input.txt")
         .linesFromResource()
@@ -46,7 +128,7 @@ private fun input() = sequence<Passport> {
         .flatMap { it.split(" ") }
         .map(String::toToken)
         .append(BlackLineToken)
-    val fields = mutableMapOf<FieldType, String>()
+    val fields = mutableMapOf<FieldType, FieldValue>()
     for (token in tokens) {
         when (token) {
             is FieldToken -> fields[token.fieldType] = token.value
@@ -83,14 +165,16 @@ private fun String.toToken(): Token {
         BlackLineToken
 }
 
+private typealias FieldValue = String
+
 private interface Passport {
-    operator fun get(fieldType: FieldType): String?
+    operator fun get(fieldType: FieldType): FieldValue?
 }
 
 private class MapPassport(
-    private val fields: Map<FieldType, String>,
+    private val fields: Map<FieldType, FieldValue>,
 ) : Passport {
-    override fun get(fieldType: FieldType): String? =
+    override fun get(fieldType: FieldType): FieldValue? =
         fields[fieldType]
 }
 
