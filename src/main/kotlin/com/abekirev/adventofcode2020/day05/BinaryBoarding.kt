@@ -6,6 +6,7 @@ import kotlin.streams.asSequence
 
 fun main() {
     partOne()
+    partTwo()
 }
 
 private fun partOne() {
@@ -16,20 +17,39 @@ private fun partOne() {
     )
 }
 
+private val ROW_RANGE = 0..127
+private val COL_RANGE = 0..7
+
+private fun partTwo() {
+    fun findVacantSeatId(): Int? {
+        val occupiedSeatIds = input().map(Seat::id).toSet()
+        for (row in ROW_RANGE)
+            for (col in COL_RANGE) {
+                val seatId = seatId(row, col)
+                if (seatId !in occupiedSeatIds && (seatId - 1) in occupiedSeatIds && (seatId + 1) in occupiedSeatIds)
+                    return seatId
+            }
+        return null
+    }
+    println(findVacantSeatId())
+}
+
 private fun input() =
     Path.of("input", "day05", "input.txt")
         .linesFromResource()
         .asSequence()
         .map(String::toSeat)
 
-data class Seat(
+private data class Seat(
     val row: Int,
     val col: Int,
 ) {
-    val id by lazy { row * 8 + col }
+    val id by lazy { seatId(row, col) }
 }
 
-fun String.toSeat(): Seat {
+private fun seatId(row: Int, col: Int): Int = row * 8 + col
+
+private fun String.toSeat(): Seat {
     if (length != 10) throw IllegalArgumentException("Wrong format: $this")
     return Seat(
         substring(0..6).toRow(),
@@ -37,13 +57,13 @@ fun String.toSeat(): Seat {
     )
 }
 
-fun String.toRow(): Int =
+private fun String.toRow(): Int =
     this
         .replace("F", "0")
         .replace("B", "1")
         .toInt(2)
 
-fun String.toCol(): Int =
+private fun String.toCol(): Int =
     this
         .replace("L", "0")
         .replace("R", "1")
