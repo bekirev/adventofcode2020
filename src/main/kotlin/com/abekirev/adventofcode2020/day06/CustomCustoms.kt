@@ -7,12 +7,22 @@ import kotlin.streams.asSequence
 
 fun main() {
     partOne()
+    partTwo()
 }
 
 private fun partOne() {
     println(
         input()
-            .map(Group::allQuestionsWithYesAnswer)
+            .map(Group::questionsAnyAnsweredYes)
+            .map(Collection<Question>::size)
+            .sum()
+    )
+}
+
+private fun partTwo() {
+    println(
+        input()
+            .map(Group::questionsAllAnsweredYes)
             .map(Collection<Question>::size)
             .sum()
     )
@@ -41,7 +51,11 @@ private fun input() = sequence {
 private class Group private constructor(private val questionsWithYesAnswer: Collection<Set<Question>>) {
     constructor(questionsWithYesAnswer: Iterable<Set<Question>>) : this(questionsWithYesAnswer.toList())
 
-    fun allQuestionsWithYesAnswer(): Set<Question> = questionsWithYesAnswer.flatMapTo(mutableSetOf()) { it }
+    fun questionsAnyAnsweredYes(): Set<Question> =
+        questionsWithYesAnswer.flatMapTo(mutableSetOf()) { it }
+
+    fun questionsAllAnsweredYes(): Set<Question> =
+        questionsWithYesAnswer.reduce { acc, questions -> acc.intersect(questions) }
 }
 
 private sealed class Token
