@@ -21,3 +21,8 @@ object PathFinder {
 private fun String.linesFromResource(): Stream<String> = Files.lines(PathFinder.fromResources(this))!!
 
 fun Path.linesFromResource(): Stream<String> = this.toString().linesFromResource()
+fun <T> Sequence<T>.append(elem: T): Sequence<T> = sequence {
+    for (value in this@append)
+        yield(value)
+    yield(elem)
+}

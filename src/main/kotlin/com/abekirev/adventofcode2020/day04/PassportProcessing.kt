@@ -8,6 +8,7 @@ import com.abekirev.adventofcode2020.day04.FieldType.HAIR_COLOR
 import com.abekirev.adventofcode2020.day04.FieldType.HEIGHT
 import com.abekirev.adventofcode2020.day04.FieldType.ISSUE_YEAR
 import com.abekirev.adventofcode2020.day04.FieldType.PASSPORT_ID
+import com.abekirev.adventofcode2020.util.append
 import com.abekirev.adventofcode2020.util.linesFromResource
 import java.nio.file.Path
 import kotlin.streams.asSequence
@@ -140,12 +141,6 @@ private fun input() = sequence<Passport> {
             }
         }
     }
-}
-
-private fun <T> Sequence<T>.append(elem: T): Sequence<T> = sequence {
-    for (value in this@append)
-        yield(value)
-    yield(elem)
 }
 
 private sealed class Token
