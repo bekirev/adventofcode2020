@@ -1,37 +1,40 @@
 package com.abekirev.adventofcode2020.day06
 
 import com.abekirev.adventofcode2020.util.append
-import com.abekirev.adventofcode2020.util.linesFromResource
+import com.abekirev.adventofcode2020.util.useLinesFromResource
 import java.nio.file.Path
-import kotlin.streams.asSequence
 
 fun main() {
     partOne()
     partTwo()
 }
 
+private val INPUT_PATH = Path.of("input", "day06", "input.txt")
+
 private fun partOne() {
     println(
-        input()
-            .map(Group::questionsAnyAnsweredYes)
-            .map(Collection<Question>::size)
-            .sum()
+        INPUT_PATH.useLinesFromResource { lines ->
+            lines.groups()
+                .map(Group::questionsAnyAnsweredYes)
+                .map(Collection<Question>::size)
+                .sum()
+        }
     )
 }
 
 private fun partTwo() {
     println(
-        input()
-            .map(Group::questionsAllAnsweredYes)
-            .map(Collection<Question>::size)
-            .sum()
+        INPUT_PATH.useLinesFromResource { lines ->
+            lines.groups()
+                .map(Group::questionsAllAnsweredYes)
+                .map(Collection<Question>::size)
+                .sum()
+        }
     )
 }
 
-private fun input() = sequence {
-    val tokens = Path.of("input", "day06", "input.txt")
-        .linesFromResource()
-        .asSequence()
+private fun Sequence<String>.groups() = sequence {
+    val tokens = this@groups
         .map(String::toToken)
         .append(BlackLineToken)
     val questions = mutableListOf<Set<Question>>()

@@ -9,14 +9,15 @@ import com.abekirev.adventofcode2020.day04.FieldType.HEIGHT
 import com.abekirev.adventofcode2020.day04.FieldType.ISSUE_YEAR
 import com.abekirev.adventofcode2020.day04.FieldType.PASSPORT_ID
 import com.abekirev.adventofcode2020.util.append
-import com.abekirev.adventofcode2020.util.linesFromResource
+import com.abekirev.adventofcode2020.util.useLinesFromResource
 import java.nio.file.Path
-import kotlin.streams.asSequence
 
 fun main() {
     partOne()
     partTwo()
 }
+
+private val INPUT_PATH = Path.of("input", "day04", "input.txt")
 
 private fun partOne() {
     printResult(
@@ -45,8 +46,11 @@ private fun partTwo() {
 
 private fun printResult(passportValidator: PassportValidator) {
     println(
-        input()
-            .count(passportValidator::validate)
+        INPUT_PATH.useLinesFromResource { lines ->
+            lines
+                .passports()
+                .count(passportValidator::validate)
+        }
     )
 }
 
@@ -122,11 +126,8 @@ private class OneOfValueValidator private constructor(
         value in allowedValues
 }
 
-private fun input() = sequence<Passport> {
-    val tokens = Path.of("input", "day04", "input.txt")
-        .linesFromResource()
-        .asSequence()
-        .flatMap { it.split(" ") }
+private fun Sequence<String>.passports() = sequence<Passport> {
+    val tokens = flatMap { it.split(" ") }
         .map(String::toToken)
         .append(BlackLineToken)
     val fields = mutableMapOf<FieldType, FieldValue>()

@@ -1,13 +1,14 @@
 package com.abekirev.adventofcode2020.day03
 
-import com.abekirev.adventofcode2020.util.linesFromResource
+import com.abekirev.adventofcode2020.util.useLinesFromResource
 import java.nio.file.Path
-import kotlin.streams.asSequence
 
 fun main() {
     partOne()
     partTwo()
 }
+
+private val INPUT_PATH = Path.of("input", "day03", "input.txt")
 
 private fun partOne() =
     println(
@@ -17,31 +18,32 @@ private fun partOne() =
 private fun partTwo() =
     println(
         treeHits(Direction(1, 1)) *
-        treeHits(Direction(1, 3)) *
-        treeHits(Direction(1, 5)) *
-        treeHits(Direction(1, 7)) *
-        treeHits(Direction(2, 1))
+            treeHits(Direction(1, 3)) *
+            treeHits(Direction(1, 5)) *
+            treeHits(Direction(1, 7)) *
+            treeHits(Direction(2, 1))
     )
 
 private fun treeHits(direction: Direction): Long =
-    slope()
-        .mapIndexed { index, row ->
-            if (index % direction.down == 0) {
-                row[index / direction.down * direction.right % row.size]
-            } else {
-                null
+    INPUT_PATH.useLinesFromResource { lines ->
+        lines
+            .slope()
+            .mapIndexed { index, row ->
+                if (index % direction.down == 0) {
+                    row[index / direction.down * direction.right % row.size]
+                } else {
+                    null
+                }
             }
-        }
-        .count(MapTile.TREE::equals)
-        .toLong()
+            .count(MapTile.TREE::equals)
+            .toLong()
+    }
 
 private typealias Slope = Sequence<List<MapTile>>
 
-private fun slope(): Slope =
-    Path.of("input", "day03", "input.txt")
-        .linesFromResource()
-        .asSequence()
-        .map { line -> line.map(Char::toMapTile) }
+private fun Sequence<String>.slope(): Slope = map { line ->
+    line.map(Char::toMapTile)
+}
 
 
 private enum class MapTile {

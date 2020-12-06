@@ -1,19 +1,23 @@
 package com.abekirev.adventofcode2020.day05
 
-import com.abekirev.adventofcode2020.util.linesFromResource
+import com.abekirev.adventofcode2020.util.useLinesFromResource
 import java.nio.file.Path
-import kotlin.streams.asSequence
 
 fun main() {
     partOne()
     partTwo()
 }
 
+private val INPUT_PATH = Path.of("input", "day05", "input.txt")
+
 private fun partOne() {
     println(
-        input()
-            .map(Seat::id)
-            .maxOrNull()
+        INPUT_PATH.useLinesFromResource { lines ->
+            lines
+                .seats()
+                .map(Seat::id)
+                .maxOrNull()
+        }
     )
 }
 
@@ -21,8 +25,8 @@ private val ROW_RANGE = 0..127
 private val COL_RANGE = 0..7
 
 private fun partTwo() {
-    fun findVacantSeatId(): Int? {
-        val occupiedSeatIds = input().map(Seat::id).toSet()
+    fun Sequence<Seat>.vacantSeatIdOrNull(): Int? {
+        val occupiedSeatIds = map(Seat::id).toSet()
         for (row in ROW_RANGE)
             for (col in COL_RANGE) {
                 val seatId = seatId(row, col)
@@ -31,14 +35,16 @@ private fun partTwo() {
             }
         return null
     }
-    println(findVacantSeatId())
+    println(
+        INPUT_PATH.useLinesFromResource { lines ->
+            lines
+                .seats()
+                .vacantSeatIdOrNull()
+        }
+    )
 }
 
-private fun input() =
-    Path.of("input", "day05", "input.txt")
-        .linesFromResource()
-        .asSequence()
-        .map(String::toSeat)
+private fun Sequence<String>.seats() = map(String::toSeat)
 
 private data class Seat(
     val row: Int,

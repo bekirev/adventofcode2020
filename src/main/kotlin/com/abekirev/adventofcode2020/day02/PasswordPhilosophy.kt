@@ -1,38 +1,43 @@
 package com.abekirev.adventofcode2020.day02
 
-import com.abekirev.adventofcode2020.util.linesFromResource
+import com.abekirev.adventofcode2020.util.useLinesFromResource
 import java.nio.file.Path
-import kotlin.streams.asSequence
 
 fun main() {
     partOne()
     partTwo()
 }
 
+private val INPUT_PATH = Path.of("input", "day02", "input.txt")
+
 private fun partOne() {
     println(
-        result(CharacterRangeEntryPasswordPolicyFactoryMethod)
+        INPUT_PATH.useLinesFromResource { lines ->
+            lines.validPasswordsCount(CharacterRangeEntryPasswordPolicyFactoryMethod)
+        }
     )
 }
 
 private fun partTwo() {
     println(
-        result(CharacterPositionEntryPasswordPolicyFactoryMethod)
+        INPUT_PATH.useLinesFromResource { lines ->
+            lines.validPasswordsCount(CharacterPositionEntryPasswordPolicyFactoryMethod)
+        }
     )
 }
 
-private fun result(policyFactoryMethod: PasswordPolicyFactoryMethod) =
-    Path.of("input", "day02", "input.txt")
-        .linesFromResource()
-        .asSequence()
-        .map { parsePolicyPasswordPair(it, policyFactoryMethod) }
+private fun Sequence<String>.validPasswordsCount(policyFactoryMethod: PasswordPolicyFactoryMethod): Int =
+    map { parsePolicyPasswordPair(it, policyFactoryMethod) }
         .count { (policy, password) ->
             policy.checkPassword(password)
         }
 
 private typealias Password = String
 
-private fun parsePolicyPasswordPair(str: String, policyFactoryMethod: PasswordPolicyFactoryMethod): Pair<PasswordPolicy, Password> {
+private fun parsePolicyPasswordPair(
+    str: String,
+    policyFactoryMethod: PasswordPolicyFactoryMethod
+): Pair<PasswordPolicy, Password> {
     val (policyStr, passwordStr) = str.split(":")
     fun parsePolicy(str: String): PasswordPolicy {
         val (rangeStr, charStr) = str.split(" ")

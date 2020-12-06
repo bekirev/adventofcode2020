@@ -1,13 +1,14 @@
 package com.abekirev.adventofcode2020.day01
 
-import com.abekirev.adventofcode2020.util.linesFromResource
+import com.abekirev.adventofcode2020.util.useLinesFromResource
 import java.nio.file.Path
-import kotlin.streams.asSequence
 
 fun main() {
     partOne()
     partTwo()
 }
+
+private val INPUT_PATH = Path.of("input", "day01", "input.txt")
 
 private fun partOne() {
     printResult(2)
@@ -19,20 +20,20 @@ private fun partTwo() {
 
 private fun printResult(numberOfEntries: Int) {
     println(
-        when (val result = result(numberOfEntries)) {
+        when (val result = productOfEntriesWithSpecifiedSum(numberOfEntries, 2020)) {
             is Int -> result
             else -> "No such entries"
         }
     )
 }
 
-private fun result(numberOfEntries: Int) =
-    Path.of("input", "day01", "input.txt")
-        .linesFromResource()
-        .asSequence()
-        .map(String::toInt)
-        .findTupleWithSum(2020, numberOfEntries)
-        .let { tuple -> tuple?.asList()?.product() }
+private fun productOfEntriesWithSpecifiedSum(numberOfEntries: Int, sum: Int) =
+    INPUT_PATH.useLinesFromResource { lines ->
+        lines
+            .map(String::toInt)
+            .findTupleWithSum(sum, numberOfEntries)
+            .let { tuple -> tuple?.asList()?.product() }
+    }
 
 private fun Iterable<Int>.product(): Int? {
     val it = iterator()
