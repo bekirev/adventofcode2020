@@ -17,3 +17,17 @@ fun <T> Sequence<T>.append(elem: T): Sequence<T> = sequence {
         yield(value)
     yield(elem)
 }
+
+inline fun <T, K, V, C : MutableCollection<V>, M : MutableMap<in K, C>> Sequence<T>.groupByTo(
+    destination: M,
+    collectionProvider: () -> C,
+    keySelector: (T) -> K,
+    valueTransform: (T) -> V,
+): M {
+    for (element in this) {
+        val key = keySelector(element)
+        val list = destination.getOrPut(key) { collectionProvider() }
+        list.add(valueTransform(element))
+    }
+    return destination
+}
