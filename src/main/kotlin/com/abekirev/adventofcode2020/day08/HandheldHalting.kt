@@ -9,6 +9,7 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeoutOrNull
+import kotlinx.coroutines.yield
 import java.nio.file.Path
 
 fun main() {
@@ -32,6 +33,8 @@ private fun partOne() =
         }
     )
 
+private const val TIMEOUT_MILLIS: Long = 10
+
 private fun partTwo() =
     println(
         Path.of("input", "day08", "input.txt").useLinesFromResource { lines ->
@@ -39,36 +42,54 @@ private fun partTwo() =
                 .instructions()
                 .toMap()
             runBlocking {
-                val computers = instructions.asSequence()
-                    .map { (key, value) ->
-                        when (value) {
-                            is NopInstruction -> instructions.plus(key to JumpInstruction(value.parameter()))
-                            is JumpInstruction -> instructions.plus(key to NopInstruction(value.parameter()))
-                            else -> null
-                        }
-                    }
-                    .filterNotNull()
-                    .map(::Program)
-                    .map(::Computer)
-                val results = mutableListOf<Deferred<State?>?>()
-                coroutineScope {
-                    for (computer in computers)
-                        results += async(Dispatchers.Default) {
-                            withTimeoutOrNull(5_000) {
-                                computer.stateAfterExecution(this)
-                            }
-                        }
-                }
-                for (result in results.asSequence().filterNotNull()) {
-                    val state = result.await()
-                    if (state != null && state.pointer.value == instructions.size) {
-                        return@runBlocking state.accumulator
-                    }
-                }
-                return@runBlocking null
+                var timeout = TIMEOUT_MILLIS
+                var value: Int?
+                val computerVariantsToTry = instructions.computerVariantsToTry()
+                do {
+                    value = computerVariantsToTry
+                        .findFirstTerminatedCorrectly(instructions.size, timeout)
+                        ?.value
+                    timeout += TIMEOUT_MILLIS
+                } while(value == null)
+                value
             }
         }
     )
+
+private fun Map<Int, Instruction>.computerVariantsToTry() =
+    this.asSequence()
+        .map { (key, value) ->
+            when (value) {
+                is NopInstruction -> this.plus(key to JumpInstruction(value.parameter()))
+                is JumpInstruction -> this.plus(key to NopInstruction(value.parameter()))
+                else -> null
+            }
+        }
+        .filterNotNull()
+        .map(::Program)
+        .map(::Computer)
+
+private suspend fun Sequence<Computer>.findFirstTerminatedCorrectly(
+    numberOfInstructions: Int,
+    timeoutMillis: Long
+): Accumulator? {
+    val results = mutableListOf<Deferred<State?>?>()
+    coroutineScope {
+        for (computer in this@findFirstTerminatedCorrectly)
+            results += async(Dispatchers.Default) {
+                withTimeoutOrNull(timeoutMillis) {
+                    computer.stateAfterExecution()
+                }
+            }
+    }
+    for (result in results.asSequence().filterNotNull()) {
+        val state = result.await()
+        if (state != null && state.pointer.value == numberOfInstructions) {
+            return state.accumulator
+        }
+    }
+    return null
+}
 
 private fun Computer.runUntilInstructionExecutionRepeats(): State? {
     val executedLines = mutableSetOf<Int>()
@@ -114,17 +135,18 @@ private class Computer(
             else -> null
         }
 
-    fun CoroutineScope.run() {
+    suspend fun run() {
         var instruction = program[state.pointer.value]
-        while (instruction != null && isActive) {
+        while (instruction != null) {
             state = instruction.execute(state)
             instruction = program[state.pointer.value]
+            yield()
         }
     }
 }
 
-private fun Computer.stateAfterExecution(scope: CoroutineScope): State {
-    scope.run()
+private suspend fun Computer.stateAfterExecution(): State {
+    run()
     return state
 }
 
