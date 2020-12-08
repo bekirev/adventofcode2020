@@ -24,17 +24,7 @@ private fun partOne() {
 private val ROW_RANGE = 0..127
 private val COL_RANGE = 0..7
 
-private fun partTwo() {
-    fun Sequence<Seat>.vacantSeatIdOrNull(): Int? {
-        val occupiedSeatIds = map(Seat::id).toSet()
-        for (row in ROW_RANGE)
-            for (col in COL_RANGE) {
-                val seatId = seatId(row, col)
-                if (seatId !in occupiedSeatIds && (seatId - 1) in occupiedSeatIds && (seatId + 1) in occupiedSeatIds)
-                    return seatId
-            }
-        return null
-    }
+private fun partTwo() =
     println(
         INPUT_PATH.useLinesFromResource { lines ->
             lines
@@ -42,6 +32,16 @@ private fun partTwo() {
                 .vacantSeatIdOrNull()
         }
     )
+
+private fun Sequence<Seat>.vacantSeatIdOrNull(): Int? {
+    val occupiedSeatIds = map(Seat::id).toSet()
+    for (row in ROW_RANGE)
+        for (col in COL_RANGE) {
+            val seatId = seatId(row, col)
+            if (seatId !in occupiedSeatIds && (seatId - 1) in occupiedSeatIds && (seatId + 1) in occupiedSeatIds)
+                return seatId
+        }
+    return null
 }
 
 private fun Sequence<String>.seats() = map(String::toSeat)
