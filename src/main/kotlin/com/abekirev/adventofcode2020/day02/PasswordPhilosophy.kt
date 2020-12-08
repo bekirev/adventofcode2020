@@ -27,28 +27,27 @@ private fun partTwo() {
 }
 
 private fun Sequence<String>.validPasswordsCount(policyFactoryMethod: PasswordPolicyFactoryMethod): Int =
-    map { parsePolicyPasswordPair(it, policyFactoryMethod) }
+    map { it.policyPasswordPair(policyFactoryMethod) }
         .count { (policy, password) ->
             policy.checkPassword(password)
         }
 
 private typealias Password = String
 
-private fun parsePolicyPasswordPair(
-    str: String,
-    policyFactoryMethod: PasswordPolicyFactoryMethod
+private fun String.policyPasswordPair(
+    policyFactoryMethod: PasswordPolicyFactoryMethod,
 ): Pair<PasswordPolicy, Password> {
-    val (policyStr, passwordStr) = str.split(":")
-    fun parsePolicy(str: String): PasswordPolicy {
-        val (rangeStr, charStr) = str.split(" ")
+    val (policyStr, passwordStr) = split(":")
+    fun String.policy(): PasswordPolicy {
+        val (rangeStr, charStr) = split(" ")
         val (leftNumber, rightNumber) = rangeStr.split("-")
         return policyFactoryMethod.create(
             charStr.first(),
-            leftNumber.toInt() - 1,
-            rightNumber.toInt() - 1
+            leftNumber.toInt(),
+            rightNumber.toInt()
         )
     }
-    return parsePolicy(policyStr) to passwordStr.trim()
+    return policyStr.policy() to passwordStr.trim()
 }
 
 private fun interface PasswordPolicyFactoryMethod {
@@ -67,7 +66,7 @@ private object CharacterPositionEntryPasswordPolicyFactoryMethod : PasswordPolic
     override fun create(char: Char, leftNumber: Int, rightNumber: Int): PasswordPolicy =
         CharacterPositionEntryPasswordPolicy(
             char,
-            setOf(leftNumber, rightNumber)
+            setOf(leftNumber - 1, rightNumber - 1)
         )
 }
 
@@ -80,7 +79,7 @@ private class CharacterRangeEntryPasswordPolicy(
     private val entryCountRange: IntRange,
 ) : PasswordPolicy {
     override fun checkPassword(password: Password): Boolean =
-        password.count { it == char } in entryCountRange
+        password.count(char::equals) in entryCountRange
 }
 
 private class CharacterPositionEntryPasswordPolicy(
