@@ -12,8 +12,11 @@ repositories {
     mavenCentral()
 }
 
+val kotestVersion = "4.3.1"
+
 dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.2")
+    testImplementation("io.kotest:kotest-runner-junit5:$kotestVersion")
     testImplementation(kotlin("test-junit5"))
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.6.0")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.6.0")

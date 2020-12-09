@@ -56,7 +56,7 @@ private fun interface PasswordPolicyFactoryMethod {
 
 private object CharacterRangeEntryPasswordPolicyFactoryMethod : PasswordPolicyFactoryMethod {
     override fun create(char: Char, leftNumber: Int, rightNumber: Int): PasswordPolicy =
-        CharacterRangeEntryPasswordPolicy(
+        CharacterEntryCountPasswordPolicy(
             char,
             leftNumber..rightNumber
         )
@@ -64,7 +64,7 @@ private object CharacterRangeEntryPasswordPolicyFactoryMethod : PasswordPolicyFa
 
 private object CharacterPositionEntryPasswordPolicyFactoryMethod : PasswordPolicyFactoryMethod {
     override fun create(char: Char, leftNumber: Int, rightNumber: Int): PasswordPolicy =
-        CharacterPositionEntryPasswordPolicy(
+        CharacterEntryPositionPasswordPolicy(
             char,
             setOf(leftNumber - 1, rightNumber - 1)
         )
@@ -74,7 +74,7 @@ private interface PasswordPolicy {
     fun checkPassword(password: Password): Boolean
 }
 
-private class CharacterRangeEntryPasswordPolicy(
+class CharacterEntryCountPasswordPolicy(
     private val char: Char,
     private val entryCountRange: IntRange,
 ) : PasswordPolicy {
@@ -82,7 +82,7 @@ private class CharacterRangeEntryPasswordPolicy(
         password.count(char::equals) in entryCountRange
 }
 
-private class CharacterPositionEntryPasswordPolicy(
+class CharacterEntryPositionPasswordPolicy(
     private val char: Char,
     private val entryPositions: Set<Int>,
 ) : PasswordPolicy {
