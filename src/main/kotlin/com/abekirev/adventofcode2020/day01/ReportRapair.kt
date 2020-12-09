@@ -21,23 +21,23 @@ private fun partTwo() {
 private fun printResult(numberOfEntries: Int) {
     println(
         when (val result = productOfEntriesWithSpecifiedSum(numberOfEntries, 2020)) {
-            is Int -> result
+            is Long -> result
             else -> "No such entries"
         }
     )
 }
 
-private fun productOfEntriesWithSpecifiedSum(numberOfEntries: Int, sum: Int) =
+private fun productOfEntriesWithSpecifiedSum(numberOfEntries: Int, sum: Long) =
     INPUT_PATH.useLinesFromResource { lines ->
         lines
-            .map(String::toInt)
+            .map(String::toLong)
             .findTupleWithSum(sum, numberOfEntries)
             .let { tuple -> tuple?.asList()?.product() }
     }
 
-private fun Iterable<Int>.product(): Int? {
+private fun Iterable<Long>.product(): Long? {
     val it = iterator()
-    var result: Int? = null
+    var result: Long? = null
     if (it.hasNext()) {
         result = it.next()
         while (it.hasNext()) {
@@ -47,7 +47,7 @@ private fun Iterable<Int>.product(): Int? {
     return result
 }
 
-private fun Sequence<Int>.findTupleWithSum(sum: Int, size: Int): Tuple<Int>? =
+fun Sequence<Long>.findTupleWithSum(sum: Long, size: Int): Tuple<Long>? =
     tuples(size)
         .firstOrNull { tuple -> tuple.asList().sum() == sum }
 
@@ -116,7 +116,7 @@ private fun <T> Sequence<T>.drop(size: Int): DropResult<T> {
     )
 }
 
-private interface Tuple<T> {
+interface Tuple<T> {
     operator fun get(index: Int): T
     fun asList(): List<T>
 }
