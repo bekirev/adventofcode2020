@@ -47,7 +47,7 @@ private fun Iterable<Long>.product(): Long? {
     return result
 }
 
-fun Sequence<Long>.findTupleWithSum(sum: Long, size: Int): Tuple<Long>? =
+private fun Sequence<Long>.findTupleWithSum(sum: Long, size: Int): Tuple<Long>? =
     tuples(size)
         .firstOrNull { tuple -> tuple.asList().sum() == sum }
 

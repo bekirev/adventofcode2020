@@ -1,6 +1,5 @@
 package com.abekirev.adventofcode2020.day09
 
-import com.abekirev.adventofcode2020.day01.findTupleWithSum
 import com.abekirev.adventofcode2020.util.useLinesFromResource
 import java.nio.file.Path
 import java.util.LinkedList
@@ -8,60 +7,58 @@ import java.util.Queue
 
 
 fun main() {
-    partOne()
-    partTwo()
+    val exceptionalNumber = partOne() ?: throw IllegalStateException("Exceptional number is not found")
+    println(exceptionalNumber)
+    val encryptionWeakness =
+        partTwo(exceptionalNumber) ?: throw IllegalStateException("Encryption weakness is not found")
+    println(encryptionWeakness)
 }
 
-private const val PREAMBLE_SIZE = 26
+private const val PREAMBLE_SIZE = 25
 
 private fun partOne() =
-    println(
-        Path.of("input", "day09", "input.txt").useLinesFromResource { lines ->
-            lines
-                .map(String::toLong)
-                .runningChunked(PREAMBLE_SIZE)
-                .map { it.last() to it.asSequence().take(PREAMBLE_SIZE - 1).findTupleWithSum(it.last(), 2) }
-                .filter { it.second == null }
-                .first()
-                .first
-        }
-    )
+    Path.of("input", "day09", "input.txt").useLinesFromResource { lines ->
+        lines
+            .map(String::toLong)
+            .exceptionalNumber(PREAMBLE_SIZE)
+    }
 
-private fun partTwo() =
-    println(
-        Path.of("input", "day09", "input.txt").useLinesFromResource { lines ->
-            lines.map(String::toLong).toList().let { numbers ->
-                numbers.take(numbers.indexOf(1124361034) - 1)
-            }
-                .findSubsequenceWithSpecificSumOfElements(1124361034L)
-                ?.let { it.minOrNull()!! to it.maxOrNull()!! }
-                ?.let { it.first + it.second }
-        }
-    )
+private fun partTwo(exceptionalNumber: Long) =
+    Path.of("input", "day09", "input.txt").useLinesFromResource { lines ->
+        lines.map(String::toLong)
+            .findSubsequenceWithSpecificSumOfElements(exceptionalNumber)
+            ?.let { it.minOrNull()!! to it.maxOrNull()!! }
+            ?.let { it.first + it.second }
+    }
 
-private fun List<Long>.findSubsequenceWithSpecificSumOfElements(value: Long): List<Long>? {
-    for (start in 0 until size) {
-        for (end in start + 1..size) {
-            val subList = subList(start, end)
-            val sum = subList.sum()
-            when {
-                sum > value -> break
-                sum == value -> return subList
-            }
-        }
+private fun Sequence<Long>.findSubsequenceWithSpecificSumOfElements(sum: Long): Collection<Long>? {
+    val slice: Queue<Long> = LinkedList()
+    for (elem in this) {
+        slice.add(elem)
+        val sliceSum = { slice.sum() }
+        while (sliceSum() > sum)
+            slice.remove()
+        if (sliceSum() == sum && slice.size > 1)
+            return slice
     }
     return null
 }
 
-private fun <T> Sequence<T>.runningChunked(chunkSize: Int): Sequence<List<T>> = sequence {
-    val queue: Queue<T> = LinkedList()
-    for (elem in this@runningChunked) {
-        if (queue.size != chunkSize) {
-            queue.add(elem)
-        } else {
+private fun Sequence<Long>.exceptionalNumber(preambleSize: Int): Long? {
+    val queue: Queue<Long> = LinkedList()
+    for (elem in this) {
+        if (queue.size == preambleSize) {
+            if (!queue.hasTwoNumbersWithSpecificSum(elem))
+                return elem
             queue.remove()
-            queue.add(elem)
-            yield(queue.toList())
         }
+        queue.add(elem)
     }
+    return null
+}
+
+
+private fun Collection<Long>.hasTwoNumbersWithSpecificSum(sum: Long): Boolean {
+    val set = toSet()
+    return set.any { number -> sum - number != number && sum - number in set }
 }
