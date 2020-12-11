@@ -3,7 +3,7 @@ package com.abekirev.adventofcode2020.util.grid
 class MutableMapGrid<T : Any> private constructor(
     override val size: Size,
     private val map: MutableMap<Position, T>,
-) : Grid<T, MutableMapGrid<T>> {
+) : Grid<T> {
     constructor(
         size: Size,
         fillerFunction: (row: Int, col: Int) -> T,

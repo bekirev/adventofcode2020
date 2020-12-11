@@ -28,7 +28,7 @@ private fun partTwo() =
         )
     )
 
-private fun occupiedSeatsCountAfterEquilibrium(gridCellCellStateChangeDeterminer: GridCellStateChangeDeterminer<MutableMapGrid<Cell>>) =
+private fun occupiedSeatsCountAfterEquilibrium(gridCellCellStateChangeDeterminer: GridCellStateChangeDeterminer) =
     Path.of("input", "day11", "input.txt").useLinesFromResource { lines ->
         val grid = lines.toGrid()
         val finalGrid = SeatingSystem(
@@ -52,11 +52,11 @@ private fun Sequence<String>.toGrid(): MutableMapGrid<Cell> {
     }
 }
 
-private class SeatingSystem<G : Grid<Cell, G>>(
-    private var grid: G,
-    private val gridCellStateChangeDeterminer: GridCellStateChangeDeterminer<G>,
+private class SeatingSystem(
+    private var grid: Grid<Cell>,
+    private val gridCellStateChangeDeterminer: GridCellStateChangeDeterminer,
 ) {
-    fun equilibriumState(): G {
+    fun equilibriumState(): Grid<Cell> {
         val stateChanges: MutableMap<Position, Cell> = mutableMapOf()
         do {
             stateChanges.clear()
@@ -77,15 +77,15 @@ private class SeatingSystem<G : Grid<Cell, G>>(
     }
 }
 
-private fun interface GridCellStateChangeDeterminer<G : Grid<Cell, G>> {
-    fun determineAtPosition(pos: Position, grid: G): StateChange?
+private fun interface GridCellStateChangeDeterminer {
+    fun determineAtPosition(pos: Position, grid: Grid<Cell>): StateChange?
 }
 
-private class VisibleSeatsCheckGridCellStateChangeDeterminer<G : Grid<Cell, G>>(
+private class VisibleSeatsCheckGridCellStateChangeDeterminer(
     private val occupiedSeatsThreshold: Int,
-    private val visibleSeatsFindingStrategy: (pos: Position, grid: G) -> Sequence<Seat>,
-) : GridCellStateChangeDeterminer<G> {
-    override fun determineAtPosition(pos: Position, grid: G): StateChange? {
+    private val visibleSeatsFindingStrategy: (pos: Position, grid: Grid<Cell>) -> Sequence<Seat>,
+) : GridCellStateChangeDeterminer {
+    override fun determineAtPosition(pos: Position, grid: Grid<Cell>): StateChange? {
         val visibleSeats by lazy { visibleSeatsFindingStrategy(pos, grid) }
         return when (grid[pos]) {
             EmptySeat -> {
@@ -105,15 +105,15 @@ private class VisibleSeatsCheckGridCellStateChangeDeterminer<G : Grid<Cell, G>>(
     }
 }
 
-private class EightNearestNeighborsGridCellCellStateChangeDeterminer<G : Grid<Cell, G>> private constructor(
-    private val visibleSeatsCheckGridCellStateChangeDeterminer: VisibleSeatsCheckGridCellStateChangeDeterminer<G>,
-) : GridCellStateChangeDeterminer<G> by visibleSeatsCheckGridCellStateChangeDeterminer {
+private class EightNearestNeighborsGridCellCellStateChangeDeterminer private constructor(
+    private val visibleSeatsCheckGridCellStateChangeDeterminer: VisibleSeatsCheckGridCellStateChangeDeterminer,
+) : GridCellStateChangeDeterminer by visibleSeatsCheckGridCellStateChangeDeterminer {
     constructor(occupiedSeatsThreshold: Int) : this(
         VisibleSeatsCheckGridCellStateChangeDeterminer(occupiedSeatsThreshold, ::visibleSeats)
     )
 
     companion object {
-        private fun <G : Grid<Cell, G>> visibleSeats(pos: Position, grid: G): Sequence<Seat> =
+        private fun visibleSeats(pos: Position, grid: Grid<Cell>): Sequence<Seat> =
             sequenceOf(
                 pos.plusCol(1),
                 pos.plusCol(-1),
@@ -130,15 +130,15 @@ private class EightNearestNeighborsGridCellCellStateChangeDeterminer<G : Grid<Ce
     }
 }
 
-private class EightVisibleGridCellCellStateChangeDeterminer<G : Grid<Cell, G>> private constructor(
-    private val visibleSeatsCheckGridCellStateChangeDeterminer: VisibleSeatsCheckGridCellStateChangeDeterminer<G>,
-) : GridCellStateChangeDeterminer<G> by visibleSeatsCheckGridCellStateChangeDeterminer {
+private class EightVisibleGridCellCellStateChangeDeterminer private constructor(
+    private val visibleSeatsCheckGridCellStateChangeDeterminer: VisibleSeatsCheckGridCellStateChangeDeterminer,
+) : GridCellStateChangeDeterminer by visibleSeatsCheckGridCellStateChangeDeterminer {
     constructor(occupiedSeatsThreshold: Int) : this(
-        VisibleSeatsCheckGridCellStateChangeDeterminer<G>(occupiedSeatsThreshold, ::visibleSeats)
+        VisibleSeatsCheckGridCellStateChangeDeterminer(occupiedSeatsThreshold, ::visibleSeats)
     )
 
     companion object {
-        private fun <G : Grid<Cell, G>> visibleSeats(pos: Position, grid: G): Sequence<Seat> {
+        private fun visibleSeats(pos: Position, grid: Grid<Cell>): Sequence<Seat> {
             fun cellsInDirection(rowValue: Int, colValue: Int) = sequence {
                 var curPos = pos
                 while (true) {
