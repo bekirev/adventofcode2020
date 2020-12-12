@@ -59,33 +59,32 @@ private class Ship(
         get() = _position
 
     fun executeInstruction(instruction: NavigationInstruction) {
-        when (val action = instructionInterpreter.move(_position, instruction)) {
-            is MoveAction -> _position = action.moveToPosition
+        val positionToMove = instructionInterpreter.moveTo(_position, instruction)
+        if (positionToMove != null) {
+            _position = positionToMove
         }
     }
 }
 
 private interface InstructionInterpreter {
-    fun move(position: Position, instruction: NavigationInstruction): Action
+    fun moveTo(position: Position, instruction: NavigationInstruction): Position?
 }
-
-private sealed class Action
-private object StayAction : Action()
-private data class MoveAction(val moveToPosition: Position) : Action()
 
 private const val RIGHT_ANGLE = 90
 
 private class ShipFaceDirectionBasedInstructionInterpreter(
     private var faceDirection: MoveDirection,
 ) : InstructionInterpreter {
-    override fun move(position: Position, instruction: NavigationInstruction): Action = when (instruction) {
-        is GeoDirectionMoveNavigationInstruction -> MoveAction(position.move(instruction.moveDirection,
-            instruction.value))
+    override fun moveTo(position: Position, instruction: NavigationInstruction): Position? = when (instruction) {
+        is GeoDirectionMoveNavigationInstruction -> position.move(
+                instruction.moveDirection,
+                instruction.value
+            )
         is TurnNavigationInstruction -> {
             faceDirection = turn(instruction.turnDirection, instruction.degrees, faceDirection)
-            StayAction
+            null
         }
-        is MoveForwardNavigationInstruction -> MoveAction(position.move(faceDirection, instruction.value))
+        is MoveForwardNavigationInstruction -> position.move(faceDirection, instruction.value)
     }
 
     companion object {
@@ -122,33 +121,33 @@ private class ShipFaceDirectionBasedInstructionInterpreter(
 private class WaypointBasedInstructionInterpreter(
     private var waypoint: Position,
 ) : InstructionInterpreter {
-    override fun move(position: Position, instruction: NavigationInstruction): Action = when (instruction) {
+    override fun moveTo(position: Position, instruction: NavigationInstruction): Position? = when (instruction) {
         is GeoDirectionMoveNavigationInstruction -> {
             waypoint = waypoint.move(instruction.moveDirection, instruction.value)
-            StayAction
+            null
         }
         is TurnNavigationInstruction -> {
             waypoint = turn(waypoint, instruction.turnDirection, instruction.degrees)
-            StayAction
+            null
         }
-        is MoveForwardNavigationInstruction -> MoveAction(position + waypoint * instruction.value)
+        is MoveForwardNavigationInstruction -> position + waypoint * instruction.value
     }
 
     companion object {
         private tailrec fun turn(
             position: Position,
             degrees: Int,
-            rightAngleTurn: (Position) -> Position
+            rightAngleTurn: (Position) -> Position,
         ): Position = when {
             degrees < RIGHT_ANGLE -> position
             else -> turn(rightAngleTurn(position), degrees - RIGHT_ANGLE, rightAngleTurn)
         }
 
         private fun turn(position: Position, turnDirection: TurnDirection, degrees: Int): Position =
-            turn(position, degrees, ) { pos ->
+            turn(position, degrees,) { (east, north) ->
                 when (turnDirection) {
-                    LEFT -> Position(east = -pos.north, north = pos.east)
-                    RIGHT -> Position(east = pos.north, north = -pos.east)
+                    LEFT -> Position(east = -north, north = east)
+                    RIGHT -> Position(east = north, north = -east)
                 }
             }
     }
