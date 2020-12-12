@@ -12,20 +12,30 @@ import kotlin.math.absoluteValue
 
 fun main() {
     partOne()
+    partTwo()
 }
 
 private fun partOne() =
     println(
-        Path.of("input", "day12", "input.txt").useLinesFromResource { lines ->
-            lines
-                .map(String::toNavigationInstruction)
-                .fold(Ship(Position.ZERO, EAST)) { ship, instriuction ->
-                    instriuction.moveShip(ship)
-                }
-                .position
-                .manhattanDistance()
-        }
+        result(PartOneInstructionInterpreter(faceDirection = EAST))
     )
+
+private fun partTwo() =
+    println(
+        result(PartTwoInstructionInterpreter(waypoint = Position(10, 1)))
+    )
+
+private fun result(instructionInterpreter: InstructionInterpreter) =
+    Path.of("input", "day12", "input.txt").useLinesFromResource { lines ->
+        lines
+            .map(String::toNavigationInstruction)
+            .fold(Ship(Position.ZERO, instructionInterpreter)) { ship, instruction ->
+                ship.executeInstruction(instruction)
+                ship
+            }
+            .position
+            .manhattanDistance()
+    }
 
 private fun String.toNavigationInstruction(): NavigationInstruction {
     val intValue = substring(1).toInt()
@@ -41,71 +51,54 @@ private fun String.toNavigationInstruction(): NavigationInstruction {
     }
 }
 
-private data class Ship(
-    val position: Position,
-    val moveDirection: MoveDirection,
-)
-
-private data class Position(
-    val east: Int,
-    val north: Int,
+private class Ship(
+    private var _position: Position,
+    private val instructionInterpreter: InstructionInterpreter,
 ) {
-    companion object {
-        val ZERO = Position(0, 0)
+    val position: Position
+        get() = _position
+
+    fun executeInstruction(instruction: NavigationInstruction) {
+        when (val action = instructionInterpreter.move(_position, instruction)) {
+            is MoveAction -> _position = action.moveToPosition
+        }
     }
 }
 
-private fun Position.manhattanDistance() =
-    east.absoluteValue + north.absoluteValue
-
-private enum class MoveDirection {
-    NORTH,
-    SOUTH,
-    EAST,
-    WEST,
-    ;
+private interface InstructionInterpreter {
+    fun move(position: Position, instruction: NavigationInstruction): Action
 }
 
-private interface NavigationInstruction {
-    fun moveShip(ship: Ship): Ship
-}
+private sealed class Action
+private object StayAction : Action()
+private data class MoveAction(val moveToPosition: Position) : Action()
 
-private class GeoDirectionMoveNavigationInstruction(
-    private val moveDirection: MoveDirection,
-    private val value: Int,
-) : NavigationInstruction {
-    override fun moveShip(ship: Ship): Ship =
-        ship.copy(position = when (moveDirection) {
-            NORTH -> ship.position.copy(north = ship.position.north + value)
-            SOUTH -> ship.position.copy(north = ship.position.north - value)
-            EAST -> ship.position.copy(east = ship.position.east + value)
-            WEST -> ship.position.copy(east = ship.position.east - value)
-        })
-}
+private const val RIGHT_ANGLE = 90
 
-private enum class TurnDirection {
-    LEFT,
-    RIGHT,
-    ;
-}
+private class PartOneInstructionInterpreter(
+    private var faceDirection: MoveDirection,
+) : InstructionInterpreter {
+    override fun move(position: Position, instruction: NavigationInstruction): Action = when (instruction) {
+        is GeoDirectionMoveNavigationInstruction -> MoveAction(position.move(instruction.moveDirection,
+            instruction.value))
+        is TurnNavigationInstruction -> {
+            faceDirection = turn(instruction.turnDirection, instruction.degrees, faceDirection)
+            StayAction
+        }
+        is MoveForwardNavigationInstruction -> MoveAction(position.move(faceDirection, instruction.value))
+    }
 
-private class TurnNavigationInstruction(
-    private val turnDirection: TurnDirection,
-    private val degrees: Int,
-) : NavigationInstruction {
     companion object {
-        private const val RIGHT_ANGLE = 90
-
         private tailrec fun turn(
             turnDirection: TurnDirection,
             degrees: Int,
-            moveDirection: MoveDirection,
+            faceDirection: MoveDirection,
         ): MoveDirection = when {
-            degrees < RIGHT_ANGLE -> moveDirection
-            else -> turn(turnDirection, degrees - RIGHT_ANGLE, moveDirection.turn(turnDirection))
+            degrees < RIGHT_ANGLE -> faceDirection
+            else -> turn(turnDirection, degrees - RIGHT_ANGLE, faceDirection.turn(turnDirection))
         }
 
-        private fun MoveDirection.turn(turnDirection: TurnDirection): MoveDirection = when(this) {
+        private fun MoveDirection.turn(turnDirection: TurnDirection): MoveDirection = when (this) {
             NORTH -> when (turnDirection) {
                 LEFT -> WEST
                 RIGHT -> EAST
@@ -124,20 +117,93 @@ private class TurnNavigationInstruction(
             }
         }
     }
-    override fun moveShip(ship: Ship): Ship =
-        ship.copy(moveDirection = turn(turnDirection, degrees, ship.moveDirection))
 }
 
-private class MoveForwardNavigationInstruction(
-    private val value: Int,
-) : NavigationInstruction {
-    override fun moveShip(ship: Ship): Ship =
-        ship.copy(
-            position = when (ship.moveDirection) {
-                NORTH -> ship.position.copy(north = ship.position.north + value)
-                SOUTH -> ship.position.copy(north = ship.position.north - value)
-                EAST -> ship.position.copy(east = ship.position.east + value)
-                WEST -> ship.position.copy(east = ship.position.east - value)
+private class PartTwoInstructionInterpreter(
+    private var waypoint: Position,
+) : InstructionInterpreter {
+    override fun move(position: Position, instruction: NavigationInstruction): Action = when (instruction) {
+        is GeoDirectionMoveNavigationInstruction -> {
+            waypoint = waypoint.move(instruction.moveDirection, instruction.value)
+            StayAction
+        }
+        is TurnNavigationInstruction -> {
+            waypoint = turn(waypoint, instruction.turnDirection, instruction.degrees)
+            StayAction
+        }
+        is MoveForwardNavigationInstruction -> MoveAction(position + waypoint * instruction.value)
+    }
+
+    companion object {
+        private tailrec fun turn(
+            position: Position,
+            degrees: Int,
+            rightAngleTurn: (Position) -> Position
+        ): Position = when {
+            degrees < RIGHT_ANGLE -> position
+            else -> turn(rightAngleTurn(position), degrees - RIGHT_ANGLE, rightAngleTurn)
+        }
+
+        private fun turn(position: Position, turnDirection: TurnDirection, degrees: Int): Position =
+            turn(position, degrees, ) { pos ->
+                when (turnDirection) {
+                    LEFT -> Position(east = -pos.north, north = pos.east)
+                    RIGHT -> Position(east = pos.north, north = -pos.east)
+                }
             }
-        )
+    }
 }
+
+private data class Position(
+    val east: Int,
+    val north: Int,
+) {
+    companion object {
+        val ZERO = Position(0, 0)
+    }
+}
+
+private fun Position.move(moveDirection: MoveDirection, value: Int): Position = when (moveDirection) {
+    NORTH -> copy(north = north + value)
+    SOUTH -> copy(north = north - value)
+    EAST -> copy(east = east + value)
+    WEST -> copy(east = east - value)
+}
+
+private operator fun Position.times(value: Int): Position =
+    Position(east * value, north * value)
+
+private operator fun Position.plus(other: Position): Position =
+    Position(east + other.east, north + other.north)
+
+private fun Position.manhattanDistance() =
+    east.absoluteValue + north.absoluteValue
+
+private enum class MoveDirection {
+    NORTH,
+    SOUTH,
+    EAST,
+    WEST,
+    ;
+}
+
+private enum class TurnDirection {
+    LEFT,
+    RIGHT,
+    ;
+}
+
+private sealed class NavigationInstruction
+private data class GeoDirectionMoveNavigationInstruction(
+    val moveDirection: MoveDirection,
+    val value: Int,
+) : NavigationInstruction()
+
+private data class TurnNavigationInstruction(
+    val turnDirection: TurnDirection,
+    val degrees: Int,
+) : NavigationInstruction()
+
+private data class MoveForwardNavigationInstruction(
+    val value: Int,
+) : NavigationInstruction()
