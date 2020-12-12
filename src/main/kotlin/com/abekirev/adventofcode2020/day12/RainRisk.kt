@@ -52,16 +52,16 @@ private fun String.toNavigationInstruction(): NavigationInstruction {
 }
 
 private class Ship(
-    private var _position: Position,
+    position: Position,
     private val instructionInterpreter: InstructionInterpreter,
 ) {
-    val position: Position
-        get() = _position
+    var position: Position = position
+        private set
 
     fun executeInstruction(instruction: NavigationInstruction) {
-        val positionToMove = instructionInterpreter.moveTo(_position, instruction)
+        val positionToMove = instructionInterpreter.moveTo(position, instruction)
         if (positionToMove != null) {
-            _position = positionToMove
+            position = positionToMove
         }
     }
 }
