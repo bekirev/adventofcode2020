@@ -17,12 +17,12 @@ fun main() {
 
 private fun partOne() =
     println(
-        result(PartOneInstructionInterpreter(faceDirection = EAST))
+        result(ShipFaceDirectionBasedInstructionInterpreter(faceDirection = EAST))
     )
 
 private fun partTwo() =
     println(
-        result(PartTwoInstructionInterpreter(waypoint = Position(10, 1)))
+        result(WaypointBasedInstructionInterpreter(waypoint = Position(10, 1)))
     )
 
 private fun result(instructionInterpreter: InstructionInterpreter) =
@@ -75,7 +75,7 @@ private data class MoveAction(val moveToPosition: Position) : Action()
 
 private const val RIGHT_ANGLE = 90
 
-private class PartOneInstructionInterpreter(
+private class ShipFaceDirectionBasedInstructionInterpreter(
     private var faceDirection: MoveDirection,
 ) : InstructionInterpreter {
     override fun move(position: Position, instruction: NavigationInstruction): Action = when (instruction) {
@@ -119,7 +119,7 @@ private class PartOneInstructionInterpreter(
     }
 }
 
-private class PartTwoInstructionInterpreter(
+private class WaypointBasedInstructionInterpreter(
     private var waypoint: Position,
 ) : InstructionInterpreter {
     override fun move(position: Position, instruction: NavigationInstruction): Action = when (instruction) {
