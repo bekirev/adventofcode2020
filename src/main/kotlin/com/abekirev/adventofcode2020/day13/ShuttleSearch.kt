@@ -1,10 +1,14 @@
 package com.abekirev.adventofcode2020.day13
 
+import com.abekirev.adventofcode2020.util.lcm
 import com.abekirev.adventofcode2020.util.useLinesFromResource
+import java.math.BigInteger
 import java.nio.file.Path
+import java.util.Stack
 
 fun main() {
     partOne()
+    partTwo()
 }
 
 private fun partOne() =
@@ -38,3 +42,106 @@ data class NumberDividerPair(
     val number: Int,
     val divider: Int,
 )
+
+private fun partTwo() =
+    println(
+        Path.of("input", "day13", "input.txt").useLinesFromResource { lines ->
+            val schedule =
+                lines.toList()[1].split(',').map { it.toLongOrNull() }.dropWhile { it == null }.toMutableList()
+            val startDividerNumberRule = CurrentDividerNumberRule(schedule.first()!!.toBigInteger())
+            schedule[0] = null
+            val offsetDividerNumberRules = schedule.offsetsFromGivenIndexFromOtherElements(0).map { (period, offset) ->
+                OffsetDividerNumberRule(period.toBigInteger(), offset.toBigInteger())
+            }.toList()
+            numberThatCompliesWithAllNumberRules(
+                startDividerNumberRule,
+                offsetDividerNumberRules
+            )
+        }
+    )
+
+fun numberThatCompliesWithAllNumberRules(
+    startDividerNumberRule: CurrentDividerNumberRule,
+    offsetRules: Collection<OffsetDividerNumberRule>,
+): BigInteger {
+    tailrec fun nextNumberCompliesWithRule(
+        start: BigInteger,
+        delta: BigInteger,
+        rule: OffsetDividerNumberRule,
+    ): BigInteger = when {
+        start compliesWith rule -> start
+        else -> nextNumberCompliesWithRule(start + delta, delta, rule)
+    }
+
+    tailrec fun numberThatCompliesWithAllRules(
+        start: BigInteger,
+        lcm: BigInteger,
+        rules: Stack<OffsetDividerNumberRule>,
+    ): BigInteger = when {
+        rules.isEmpty() -> start
+        else -> {
+            val rule = rules.pop()
+            numberThatCompliesWithAllRules(
+                nextNumberCompliesWithRule(start, lcm, rule),
+                lcm(lcm, rule.divider),
+                rules
+            )
+        }
+    }
+
+    return numberThatCompliesWithAllRules(
+        startDividerNumberRule.divider,
+        startDividerNumberRule.divider,
+        Stack<OffsetDividerNumberRule>().apply {
+            addAll(offsetRules)
+        }
+    )
+}
+
+interface DividerNumberRule {
+    val divider: BigInteger
+    fun check(number: BigInteger): Boolean
+}
+
+infix fun BigInteger.compliesWith(rule: DividerNumberRule): Boolean =
+    rule.check(this)
+
+class CurrentDividerNumberRule(
+    override val divider: BigInteger,
+) : DividerNumberRule {
+    init {
+        check(divider != BigInteger.ZERO) { "Divider shouldn't be 0" }
+    }
+
+    override fun check(number: BigInteger): Boolean =
+        number % divider == BigInteger.ZERO
+
+}
+
+class OffsetDividerNumberRule private constructor(
+    private val currentDividerNumberRule: CurrentDividerNumberRule,
+    private val offset: BigInteger,
+) : DividerNumberRule {
+    constructor(
+        divider: BigInteger,
+        offset: BigInteger,
+    ) : this(
+        CurrentDividerNumberRule(divider),
+        offset
+    )
+
+    override val divider: BigInteger
+        get() = currentDividerNumberRule.divider
+
+    override fun check(number: BigInteger): Boolean =
+        (number + offset) compliesWith currentDividerNumberRule
+}
+
+fun <T : Any> List<T?>.offsetsFromGivenIndexFromOtherElements(index: Int): Sequence<Pair<T, Int>> = sequence {
+    for ((itIndex, elem) in this@offsetsFromGivenIndexFromOtherElements.withIndex()) {
+        if (elem != null) {
+            yield(elem to itIndex - index)
+        }
+    }
+}
+

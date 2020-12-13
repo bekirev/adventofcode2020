@@ -13,10 +13,14 @@ repositories {
 }
 
 val kotestVersion = "4.3.1"
+val mockitoVersion = "3.6.28"
+val kotlinMockitoVersion = "2.2.0"
 
 dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.2")
     testImplementation("io.kotest:kotest-runner-junit5:$kotestVersion")
+    testImplementation("org.mockito:mockito-core:$mockitoVersion")
+    testImplementation("com.nhaarman.mockitokotlin2:mockito-kotlin:$kotlinMockitoVersion")
     testImplementation(kotlin("test-junit5"))
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.6.0")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.6.0")

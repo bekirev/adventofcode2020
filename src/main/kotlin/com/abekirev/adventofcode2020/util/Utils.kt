@@ -1,6 +1,7 @@
 package com.abekirev.adventofcode2020.util
 
 import java.io.InputStream
+import java.math.BigInteger
 import java.nio.file.Path
 
 private object ResourcesUtils {
@@ -46,3 +47,9 @@ inline fun <T, K, V, C : MutableCollection<V>, M : MutableMap<in K, C>> Sequence
 }
 
 fun Sequence<Long>.product(): Long? = this.reduceOrNull(Long::times)
+
+fun lcm(a: BigInteger, b: BigInteger): BigInteger =
+    (a * b).abs() / gcd(a, b)
+
+fun gcd(a: BigInteger, b: BigInteger): BigInteger =
+    a.gcd(b)
