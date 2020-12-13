@@ -4,7 +4,6 @@ import com.abekirev.adventofcode2020.util.lcm
 import com.abekirev.adventofcode2020.util.useLinesFromResource
 import java.math.BigInteger
 import java.nio.file.Path
-import java.util.Stack
 
 fun main() {
     partOne()
@@ -73,29 +72,13 @@ fun numberThatCompliesWithAllNumberRules(
         else -> nextNumberCompliesWithRule(start + delta, delta, rule)
     }
 
-    tailrec fun numberThatCompliesWithAllRules(
-        start: BigInteger,
-        lcm: BigInteger,
-        rules: Stack<OffsetDividerNumberRule>,
-    ): BigInteger = when {
-        rules.isEmpty() -> start
-        else -> {
-            val rule = rules.pop()
-            numberThatCompliesWithAllRules(
-                nextNumberCompliesWithRule(start, lcm, rule),
-                lcm(lcm, rule.divider),
-                rules
-            )
-        }
+    var curNumber: BigInteger = startDividerNumberRule.divider
+    var lcm: BigInteger = startDividerNumberRule.divider
+    for (rule in offsetRules) {
+        curNumber = nextNumberCompliesWithRule(curNumber, lcm, rule)
+        lcm = lcm(lcm, rule.divider)
     }
-
-    return numberThatCompliesWithAllRules(
-        startDividerNumberRule.divider,
-        startDividerNumberRule.divider,
-        Stack<OffsetDividerNumberRule>().apply {
-            addAll(offsetRules)
-        }
-    )
+    return curNumber
 }
 
 interface DividerNumberRule {
