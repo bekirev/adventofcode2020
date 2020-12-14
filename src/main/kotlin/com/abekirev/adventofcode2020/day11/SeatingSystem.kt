@@ -1,11 +1,11 @@
 package com.abekirev.adventofcode2020.day11
 
-import com.abekirev.adventofcode2020.util.grid.Grid
-import com.abekirev.adventofcode2020.util.grid.MutableMapGrid
-import com.abekirev.adventofcode2020.util.grid.Position
-import com.abekirev.adventofcode2020.util.grid.Size
-import com.abekirev.adventofcode2020.util.grid.allPositions
-import com.abekirev.adventofcode2020.util.grid.contains
+import com.abekirev.adventofcode2020.grid.Grid
+import com.abekirev.adventofcode2020.grid.MutableMapGrid
+import com.abekirev.adventofcode2020.grid.Position
+import com.abekirev.adventofcode2020.grid.Size
+import com.abekirev.adventofcode2020.grid.allPositions
+import com.abekirev.adventofcode2020.grid.contains
 import com.abekirev.adventofcode2020.util.useLinesFromResource
 import java.nio.file.Path
 

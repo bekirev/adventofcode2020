@@ -1,4 +1,4 @@
-package com.abekirev.adventofcode2020.util.grid
+package com.abekirev.adventofcode2020.grid
 
 data class Size(
     val rowCount: Int,
