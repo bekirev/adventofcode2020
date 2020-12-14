@@ -6,7 +6,8 @@ import java.nio.file.Path
 
 private object ResourcesUtils {
     fun getResourceAsStream(name: String): InputStream =
-        javaClass.classLoader.getResourceAsStream(name) ?: throw IllegalArgumentException("No resource with name: $name")
+        javaClass.classLoader.getResourceAsStream(name)
+            ?: throw IllegalArgumentException("No resource with name: $name")
 }
 
 fun <T> Path.useLinesFromResource(block: (Sequence<String>) -> T): T =
@@ -53,3 +54,19 @@ fun lcm(a: BigInteger, b: BigInteger): BigInteger =
 
 fun gcd(a: BigInteger, b: BigInteger): BigInteger =
     a.gcd(b)
+
+fun <T> List<T>.cartesianProduct(others: List<T>): Sequence<List<T>> =
+    asSequence().flatMap { elem ->
+        others.map { other -> listOf(elem, other) }
+    }
+
+fun <T> Sequence<List<T>>.cartesianProduct(others: List<T>): Sequence<List<T>> =
+    flatMap { list ->
+        others.map(list::plus)
+    }
+
+
+fun <T> List<List<T>>.cartesianProduct(others: List<List<T>>): List<List<T>> =
+    flatMap { list ->
+        others.map(list::plus)
+    }
