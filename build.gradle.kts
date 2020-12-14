@@ -19,6 +19,7 @@ val kotlinMockitoVersion = "2.2.0"
 dependencies {
     implementation(project(":grid"))
     implementation(project(":util"))
+    implementation(project(":computer"))
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.2")
     testImplementation("io.kotest:kotest-runner-junit5:$kotestVersion")
     testImplementation("org.mockito:mockito-core:$mockitoVersion")

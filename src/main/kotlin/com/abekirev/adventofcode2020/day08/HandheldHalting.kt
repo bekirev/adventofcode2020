@@ -1,12 +1,15 @@
 package com.abekirev.adventofcode2020.day08
 
+import com.abekirev.adventofcode2020.computer.Computer
+import com.abekirev.adventofcode2020.computer.Instruction
+import com.abekirev.adventofcode2020.computer.MapProgram
+import com.abekirev.adventofcode2020.computer.SimpleComputer
+import com.abekirev.adventofcode2020.computer.State
 import com.abekirev.adventofcode2020.util.useLinesFromResource
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.isActive
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.coroutines.yield
@@ -20,8 +23,9 @@ fun main() {
 private fun partOne() =
     println(
         Path.of("input", "day08", "input.txt").useLinesFromResource { lines ->
-            Computer(
-                Program(
+            SimpleComputer(
+                GameConsoleState(),
+                MapProgram(
                     lines
                         .instructions()
                         .toMap()
@@ -38,7 +42,7 @@ private const val TIMEOUT_MILLIS: Long = 10
 private fun partTwo() =
     println(
         Path.of("input", "day08", "input.txt").useLinesFromResource { lines ->
-            val instructions: Map<Int, Instruction> = lines
+            val instructions: Map<Int, GameConsoleInstruction> = lines
                 .instructions()
                 .toMap()
             runBlocking {
@@ -50,13 +54,13 @@ private fun partTwo() =
                         .findFirstTerminatedCorrectly(instructions.size, timeout)
                         ?.value
                     timeout += TIMEOUT_MILLIS
-                } while(value == null)
+                } while (value == null)
                 value
             }
         }
     )
 
-private fun Map<Int, Instruction>.computerVariantsToTry() =
+private fun Map<Int, GameConsoleInstruction>.computerVariantsToTry() =
     this.asSequence()
         .map { (key, value) ->
             when (value) {
@@ -66,14 +70,16 @@ private fun Map<Int, Instruction>.computerVariantsToTry() =
             }
         }
         .filterNotNull()
-        .map(::Program)
-        .map(::Computer)
+        .map(::MapProgram)
+        .map { program ->
+            SimpleComputer(GameConsoleState(), program)
+        }
 
-private suspend fun Sequence<Computer>.findFirstTerminatedCorrectly(
+private suspend fun Sequence<Computer<GameConsoleState>>.findFirstTerminatedCorrectly(
     numberOfInstructions: Int,
-    timeoutMillis: Long
+    timeoutMillis: Long,
 ): Accumulator? {
-    val results = mutableListOf<Deferred<State?>?>()
+    val results = mutableListOf<Deferred<GameConsoleState?>>()
     coroutineScope {
         for (computer in this@findFirstTerminatedCorrectly)
             results += async(Dispatchers.Default) {
@@ -82,34 +88,40 @@ private suspend fun Sequence<Computer>.findFirstTerminatedCorrectly(
                 }
             }
     }
-    for (result in results.asSequence().filterNotNull()) {
+    for (result in results) {
         val state = result.await()
-        if (state != null && state.pointer.value == numberOfInstructions) {
+        if (state != null && state.pointer == numberOfInstructions) {
             return state.accumulator
         }
     }
     return null
 }
 
-private fun Computer.runUntilInstructionExecutionRepeats(): State? {
+private fun Computer<GameConsoleState>.runUntilInstructionExecutionRepeats(): GameConsoleState? {
     val executedLines = mutableSetOf<Int>()
-    var state: State? = null
-    do {
-        if (state != null)
-            executedLines += state.pointer.value
-        state = step()
-    } while (state?.pointer?.value !in executedLines)
-    return state
+    var computer: Computer<GameConsoleState> = this
+    var stateBeforeExecutionRepeats: GameConsoleState = computer.state
+    while (true) {
+        executedLines += computer.state.pointer
+        try {
+            computer = computer.tick()
+            if (computer.state.pointer in executedLines)
+                return stateBeforeExecutionRepeats
+            stateBeforeExecutionRepeats = computer.state
+        } catch (e: IndexOutOfBoundsException) {
+            return null
+        }
+    }
 }
 
 private fun Sequence<String>.instructions() =
     map(String::toInstruction)
 
-private fun Sequence<Instruction>.toMap() =
+private fun Sequence<GameConsoleInstruction>.toMap() =
     mapIndexed { index, instruction -> index to instruction }
         .toMap()
 
-private fun String.toInstruction(): Instruction {
+private fun String.toInstruction(): GameConsoleInstruction {
     val (type, parameterStr) = split(" ")
     val parameter = parameterStr.toInt()
     return when (type) {
@@ -120,96 +132,66 @@ private fun String.toInstruction(): Instruction {
     }
 }
 
-private class Computer(
-    private val program: Program,
-) {
-    var state: State = State()
-        private set
-
-    fun step(): State? =
-        when (val instruction = program[state.pointer.value]) {
-            is Instruction -> {
-                state = instruction.execute(state)
-                state
-            }
-            else -> null
-        }
-
-    suspend fun run() {
-        var instruction = program[state.pointer.value]
-        while (instruction != null) {
-            state = instruction.execute(state)
-            instruction = program[state.pointer.value]
-            yield()
-        }
-    }
-}
-
-private suspend fun Computer.stateAfterExecution(): State {
-    run()
-    return state
-}
-
-private class Program(
-    private val instructions: Map<Int, Instruction>
-) {
-    operator fun get(index: Int): Instruction? =
+private suspend fun <S : State> Computer<S>.run(): Computer<S> {
+    var computer = this
+    while (true) {
         try {
-            instructions[index]
+            computer = computer.tick()
         } catch (e: IndexOutOfBoundsException) {
-            null
+            break
         }
+        yield()
+    }
+    return computer
 }
 
-private data class State(
-    val pointer: Pointer = Pointer(0),
-    val accumulator: Accumulator = Accumulator(0)
-)
+private suspend fun Computer<GameConsoleState>.stateAfterExecution(): GameConsoleState {
+    return run().state
+}
 
-private interface Instruction {
-    fun execute(state: State): State
+private data class GameConsoleState(
+    override val pointer: Int = 0,
+    val accumulator: Accumulator = Accumulator(0),
+) : State
+
+private interface GameConsoleInstruction : Instruction<GameConsoleState> {
+    override fun execute(state: GameConsoleState): GameConsoleState
     fun parameter(): Int
 }
 
 private class AccInstruction(
-    private val delta: Int
-) : Instruction {
-    override fun execute(state: State) = state.copy(
-        accumulator = state.accumulator.changeBy(delta),
-        pointer = state.pointer.changeBy(1)
+    private val accDelta: Int,
+) : GameConsoleInstruction {
+    override fun execute(state: GameConsoleState) = state.copy(
+        accumulator = state.accumulator.changeBy(accDelta),
+        pointer = state.pointer + 1
     )
 
-    override fun parameter(): Int = delta
+    override fun parameter(): Int = accDelta
 }
 
 private class NopInstruction(
-    private val parameter: Int
-) : Instruction {
-    override fun execute(state: State) = state.copy(
-        pointer = state.pointer.changeBy(1)
+    private val parameter: Int,
+) : GameConsoleInstruction {
+    override fun execute(state: GameConsoleState) = state.copy(
+        pointer = state.pointer + 1
     )
 
     override fun parameter(): Int = parameter
 }
 
 private class JumpInstruction(
-    private val delta: Int
-) : Instruction {
-    override fun execute(state: State) = state.copy(
-        pointer = state.pointer.changeBy(delta)
+    private val pointerDelta: Int,
+) : GameConsoleInstruction {
+    override fun execute(state: GameConsoleState) = state.copy(
+        pointer = state.pointer + pointerDelta
     )
 
-    override fun parameter(): Int = delta
+    override fun parameter(): Int = pointerDelta
 }
 
 private data class Accumulator(
-    val value: Int
+    val value: Int,
 ) {
     fun changeBy(delta: Int) = Accumulator(value + delta)
-}
-
-private data class Pointer(
-    val value: Int
-) {
-    fun changeBy(delta: Int) = Pointer(value + delta)
 }
