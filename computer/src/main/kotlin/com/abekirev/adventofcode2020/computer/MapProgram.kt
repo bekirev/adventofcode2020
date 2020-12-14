@@ -3,10 +3,12 @@ package com.abekirev.adventofcode2020.computer
 class MapProgram<S : State>(
     private val instructionMap: Map<Int, Instruction<S>>,
 ) : Program<S> {
-    constructor(instructions: List<Instruction<S>>) : this(instructions
-        .asSequence()
-        .mapIndexed { index, instruction -> index to instruction }
-        .toMap()
+    constructor(instructions: List<Instruction<S>>) : this(instructions.asSequence())
+
+    constructor(instructions: Sequence<Instruction<S>>) : this(
+        instructions
+            .mapIndexed { index, instruction -> index to instruction }
+            .toMap()
     )
 
     override fun get(pointer: Int): Instruction<S> =
