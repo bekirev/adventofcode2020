@@ -51,7 +51,7 @@ private fun partTwo() =
     )
 
 private fun <M> String.toInitializationProgramInstruction(
-    initializationProgramInstructionFactory: InitializationProgramInstructionFactory<M>
+    initializationProgramInstructionFactory: InitializationProgramInstructionFactory<M>,
 ): Instruction<InitializationProgramState<M>> {
     fun String.toMemSetInstruction(
         factoryMethod: (Long, Long) -> Instruction<InitializationProgramState<M>>,

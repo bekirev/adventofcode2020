@@ -30,7 +30,7 @@ class FloatingIndexMutatorMaskTest : ShouldSpec({
     }
 
     should("mutate given indices and apply OrBitMap") {
-        OrBitMask(0b010010L).andThen(
+        BitMaskToMutatorMaskAdapter(OrBitMask(0b010010L)).andThen(
             FloatingIndicesMutatorMask(0)
         ).mutate(0b101010L).toSet() shouldBe setOf(0b111010L, 0b111011L)
     }

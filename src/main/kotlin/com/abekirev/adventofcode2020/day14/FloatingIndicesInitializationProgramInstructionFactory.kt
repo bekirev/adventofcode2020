@@ -31,21 +31,12 @@ object FloatingIndicesInitializationProgramInstructionFactory : InitializationPr
         }
         return when {
             mutator != null -> when {
-                oneMask != null -> oneMask.andThen(mutator)
+                oneMask != null -> BitMaskToMutatorMaskAdapter(oneMask).andThen(mutator)
                 else -> mutator
             }
-            oneMask != null -> oneMask.toMutatorMask()
+            oneMask != null -> BitMaskToMutatorMaskAdapter(oneMask)
             else -> IdentityMutatorMask
         }
     }
 
-    private fun BitMask.toMutatorMask(): MutatorMask = MutatorMask { value ->
-        sequenceOf(mask(value))
-    }
-}
-
-fun BitMask.andThen(mutatorMask: MutatorMask): MutatorMask = MutatorMask { value ->
-    mutatorMask.mutate(value).map { mutatedValue ->
-        mask(mutatedValue)
-    }
 }
