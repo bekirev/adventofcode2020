@@ -5,21 +5,31 @@ import java.nio.file.Path
 
 fun main() {
     partOne()
+    partTwo()
 }
 
-private fun partOne() =
+private fun partOne() {
     println(
-        Path.of("input", "day15", "input.txt").useLinesFromResource { lines ->
-            memoryGameSpokenNumber(
-                lines.first().split(",").map(String::toInt),
-                2020
-            )
-        }
+        result(2020)
     )
+}
+
+private fun partTwo() {
+    println(
+        result(30000000)
+    )
+}
+
+private fun result(finalTurn: Int) = Path.of("input", "day15", "input.txt").useLinesFromResource { lines ->
+    memoryGameSpokenNumber(
+        lines.first().split(",").map(String::toInt),
+        finalTurn
+    )
+}
 
 fun memoryGameSpokenNumber(startingSequence: List<Int>, finalTurn: Int): Int {
-    fun memoryGameSpokenNumber(
-        prevNumbers: Map<Int, Int>,
+    tailrec fun memoryGameSpokenNumber(
+        prevNumbers: MutableMap<Int, Int>,
         mostRecentSpokenNumber: Int,
         curTurn: Int,
     ): Int {
@@ -33,7 +43,9 @@ fun memoryGameSpokenNumber(startingSequence: List<Int>, finalTurn: Int): Int {
         return when (curTurn) {
             finalTurn -> nextSpokenNumber
             else -> memoryGameSpokenNumber(
-                prevNumbers.plus(mostRecentSpokenNumber to curTurn - 1),
+                prevNumbers.apply {
+                    put(mostRecentSpokenNumber, curTurn - 1)
+                },
                 nextSpokenNumber,
                 curTurn + 1
             )
@@ -47,7 +59,7 @@ fun memoryGameSpokenNumber(startingSequence: List<Int>, finalTurn: Int): Int {
                 .mapIndexed { index: Int, spokenNumber: Int ->
                     spokenNumber to index + 1
                 }
-                .toMap(),
+                .toMap(mutableMapOf()),
             startingSequence.last(),
             startingSequence.size + 1,
         )
