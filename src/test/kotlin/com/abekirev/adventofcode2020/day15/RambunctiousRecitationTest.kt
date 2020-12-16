@@ -13,8 +13,8 @@ class RambunctiousRecitationTest : ShouldSpec({
             row(listOf(8, 6, 2), 2, 6),
             row(listOf(7, 3), 2, 3),
             row(listOf(43, 22, 123), 3, 123),
-        ) { startingSequence, number, result ->
-            memoryGameSpokenNumber(startingSequence, number) shouldBeExactly result
+        ) { startingNumbers, turn, result ->
+            memoryGameSpokenNumber(startingNumbers, turn) shouldBeExactly result
         }
     }
 
@@ -30,8 +30,8 @@ class RambunctiousRecitationTest : ShouldSpec({
             row(listOf(0, 3, 7), 9, 4),
             row(listOf(0, 3, 7), 10, 0),
             row(listOf(0, 3, 6), 2020, 436),
-        ) { startingSequence, number, result ->
-            memoryGameSpokenNumber(startingSequence, number) shouldBeExactly result
+        ) { startingNumbers, turn, result ->
+            memoryGameSpokenNumber(startingNumbers, turn) shouldBeExactly result
         }
     }
 })

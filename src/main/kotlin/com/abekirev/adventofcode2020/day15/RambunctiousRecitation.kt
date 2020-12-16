@@ -2,32 +2,35 @@ package com.abekirev.adventofcode2020.day15
 
 import com.abekirev.adventofcode2020.util.useLinesFromResource
 import java.nio.file.Path
+import java.util.Hashtable
 
 fun main() {
-    partOne()
-    partTwo()
+    val startingNumbers = Path.of("input", "day15", "input.txt").useLinesFromResource { lines ->
+        lines.first().split(",").map(String::toInt)
+    }
+    partOne(startingNumbers)
+    partTwo(startingNumbers)
 }
 
-private fun partOne() {
+private fun partOne(startingNumbers: List<Int>) {
     println(
-        result(2020)
+        memoryGameSpokenNumber(
+            startingNumbers,
+            2020
+        )
     )
 }
 
-private fun partTwo() {
+private fun partTwo(startingNumbers: List<Int>) {
     println(
-        result(30000000)
+        memoryGameSpokenNumber(
+            startingNumbers,
+            30000000
+        )
     )
 }
 
-private fun result(finalTurn: Int) = Path.of("input", "day15", "input.txt").useLinesFromResource { lines ->
-    memoryGameSpokenNumber(
-        lines.first().split(",").map(String::toInt),
-        finalTurn
-    )
-}
-
-fun memoryGameSpokenNumber(startingSequence: List<Int>, finalTurn: Int): Int {
+fun memoryGameSpokenNumber(startingNumbers: List<Int>, finalTurn: Int): Int {
     tailrec fun memoryGameSpokenNumber(
         prevNumbers: MutableMap<Int, Int>,
         mostRecentSpokenNumber: Int,
@@ -47,21 +50,21 @@ fun memoryGameSpokenNumber(startingSequence: List<Int>, finalTurn: Int): Int {
                     put(mostRecentSpokenNumber, curTurn - 1)
                 },
                 nextSpokenNumber,
-                curTurn + 1
+                curTurn + 1,
             )
         }
     }
     check(finalTurn > 0) { "n should be positive" }
     return when {
-        finalTurn <= startingSequence.size -> startingSequence[finalTurn - 1]
+        finalTurn <= startingNumbers.size -> startingNumbers[finalTurn - 1]
         else -> memoryGameSpokenNumber(
-            startingSequence.subList(0, startingSequence.lastIndex)
+            startingNumbers.subList(0, startingNumbers.lastIndex)
                 .mapIndexed { index: Int, spokenNumber: Int ->
                     spokenNumber to index + 1
                 }
-                .toMap(mutableMapOf()),
-            startingSequence.last(),
-            startingSequence.size + 1,
+                .toMap(Hashtable()),
+            startingNumbers.last(),
+            startingNumbers.size + 1,
         )
     }
 }
