@@ -47,26 +47,8 @@ inline fun <T, K, V, C : MutableCollection<V>, M : MutableMap<in K, C>> Sequence
     return destination
 }
 
-fun Sequence<Long>.product(): Long? = this.reduceOrNull(Long::times)
-
 fun lcm(a: BigInteger, b: BigInteger): BigInteger =
     (a * b).abs() / gcd(a, b)
 
 fun gcd(a: BigInteger, b: BigInteger): BigInteger =
     a.gcd(b)
-
-fun <T> List<T>.cartesianProduct(others: List<T>): Sequence<List<T>> =
-    asSequence().flatMap { elem ->
-        others.map { other -> listOf(elem, other) }
-    }
-
-fun <T> Sequence<List<T>>.cartesianProduct(others: List<T>): Sequence<List<T>> =
-    flatMap { list ->
-        others.map(list::plus)
-    }
-
-
-fun <T> List<List<T>>.cartesianProduct(others: List<List<T>>): List<List<T>> =
-    flatMap { list ->
-        others.map(list::plus)
-    }
