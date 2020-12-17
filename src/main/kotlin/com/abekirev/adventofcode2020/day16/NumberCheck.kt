@@ -1,7 +1,7 @@
 package com.abekirev.adventofcode2020.day16
 
 fun interface NumberCheck {
-    fun check(number: Int): Boolean
+    fun check(number: Number): Boolean
 }
 
 infix fun Int.compliesWith(numberCheck: NumberCheck): Boolean =

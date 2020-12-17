@@ -4,7 +4,7 @@ class OrNumberCheck(
     private val firstNumberCheck: NumberCheck,
     private val secondNumberCheck: NumberCheck,
 ) : NumberCheck {
-    override fun check(number: Int): Boolean =
+    override fun check(number: Number): Boolean =
         number compliesWith firstNumberCheck || number compliesWith secondNumberCheck
 }
 

@@ -47,6 +47,8 @@ inline fun <T, K, V, C : MutableCollection<V>, M : MutableMap<in K, C>> Sequence
     return destination
 }
 
+fun Sequence<Long>.product(): Long? = this.reduceOrNull(Long::times)
+
 fun lcm(a: BigInteger, b: BigInteger): BigInteger =
     (a * b).abs() / gcd(a, b)
 
