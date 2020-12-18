@@ -60,6 +60,7 @@ private class ConwayCubesPocketDimension<T : Neighborhood<T>> private constructo
                 .asSequence()
                 .flatMap { it.neighborhood() }
                 .filterNot(activeCubes::contains)
+                .distinct()
 
     fun tick(): ConwayCubesPocketDimension<T> {
         sequenceOf(
