@@ -54,3 +54,13 @@ fun lcm(a: BigInteger, b: BigInteger): BigInteger =
 
 fun gcd(a: BigInteger, b: BigInteger): BigInteger =
     a.gcd(b)
+
+fun <T> Sequence<T>.odd(): Sequence<T> = sequence {
+    var odd = false
+    for (elem in this@odd) {
+        if (odd) {
+            yield(elem)
+        }
+        odd = !odd
+    }
+}
