@@ -9,19 +9,27 @@ import java.util.Stack
 
 fun main() {
     partOne()
+    partTwo()
 }
 
-private fun partOne() {
+private fun partOne() =
     println(
-        Path.of("input", "day18", "input.txt").useLinesFromResource { lines ->
-            lines
-                .map(String::tokenized)
-                .map(List<Token>::toExpressionEqualPriority)
-                .map(Expression::eval)
-                .sum()
-        }
+        result(List<Token>::toExpressionEqualPriority)
     )
-}
+
+private fun partTwo() =
+    println(
+        result(List<Token>::toExpressionAdditionFirst)
+    )
+
+private fun result(toExpressionFun: (List<Token>) -> Expression): Long =
+    Path.of("input", "day18", "input.txt").useLinesFromResource { lines ->
+        lines
+            .map(String::tokenized)
+            .map(toExpressionFun)
+            .map(Expression::eval)
+            .sum()
+    }
 
 fun List<Token>.toExpressionEqualPriority(): Expression =
     toExpression {
@@ -30,6 +38,17 @@ fun List<Token>.toExpressionEqualPriority(): Expression =
             LeftParenthesisToken -> 0
             RightParenthesisToken -> 0
             AddToken -> 2
+            MultiplyToken -> 2
+        }
+    }
+
+fun List<Token>.toExpressionAdditionFirst(): Expression =
+    toExpression {
+        when (this) {
+            is NumberToken -> 1
+            LeftParenthesisToken -> 0
+            RightParenthesisToken -> 0
+            AddToken -> 3
             MultiplyToken -> 2
         }
     }

@@ -18,4 +18,15 @@ class OperationOrderTest : ShouldSpec({
             expression.tokenized().toExpressionEqualPriority().eval() shouldBeExactly result
         }
     }
+    should("calculate value of arithmetic expression with the priority of addition higher than and the one of multiplication") {
+        forAll(
+            row("1 + (2 * 3) + (4 * (5 + 6))", 51L),
+            row("2 * 3 + (4 * 5)", 46L),
+            row("5 + (8 * 3 + 9 + 3 * 4 * 3)", 1445L),
+            row("5 * 9 * (7 * 3 * 3 + 9 * 3 + (8 + 6 * 4))", 669060L),
+            row("((2 + 4 * 9) * (6 + 9 * 8 + 6) + 6) + 2 + 4 * 2", 23340L),
+        ) { expression, result ->
+            expression.tokenized().toExpressionAdditionFirst().eval() shouldBeExactly result
+        }
+    }
 })
