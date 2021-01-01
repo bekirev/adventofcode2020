@@ -14,7 +14,7 @@ fun <T> Path.useLinesFromResource(block: (Sequence<String>) -> T): T =
     ResourcesUtils.getResourceAsStream(this.toString()).bufferedReader()
         .useLines(block)
 
-fun <T> Sequence<T>.append(elem: T): Sequence<T> = sequence {
+fun <R, T : R> Sequence<T>.append(elem: R): Sequence<R> = sequence {
     for (value in this@append)
         yield(value)
     yield(elem)
@@ -54,3 +54,20 @@ fun lcm(a: BigInteger, b: BigInteger): BigInteger =
 
 fun gcd(a: BigInteger, b: BigInteger): BigInteger =
     a.gcd(b)
+
+inline fun <T, K, V, C : MutableCollection<V>, M : MutableMap<in K, C>> Sequence<T>.groupByToCollection(
+    destination: M,
+    collectionProvider: () -> C,
+    keySelector: (T) -> K,
+    valueTransform: (T) -> V,
+): M {
+    for (element in this) {
+        val key = keySelector(element)
+        val list = destination.getOrPut(key) { collectionProvider() }
+        list.add(valueTransform(element))
+    }
+    return destination
+}
+
+val <T> List<T>.tail: List<T>
+    get() = if (isEmpty()) emptyList() else subList(1, size)
