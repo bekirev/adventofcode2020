@@ -1,6 +1,6 @@
 package com.abekirev.adventofcode2020.day11
 
-import com.abekirev.adventofcode2020.grid.Grid
+import com.abekirev.adventofcode2020.grid.MutableGrid
 import com.abekirev.adventofcode2020.grid.MutableMapGrid
 import com.abekirev.adventofcode2020.grid.Position
 import com.abekirev.adventofcode2020.grid.Size
@@ -53,10 +53,10 @@ private fun Sequence<String>.toGrid(): MutableMapGrid<Cell> {
 }
 
 private class SeatingSystem(
-    private var grid: Grid<Cell>,
+    private var grid: MutableGrid<Cell>,
     private val gridCellStateChangeDeterminer: GridCellStateChangeDeterminer,
 ) {
-    fun equilibriumState(): Grid<Cell> {
+    fun equilibriumState(): MutableGrid<Cell> {
         val stateChanges: MutableMap<Position, Cell> = mutableMapOf()
         do {
             stateChanges.clear()
@@ -78,14 +78,14 @@ private class SeatingSystem(
 }
 
 private fun interface GridCellStateChangeDeterminer {
-    fun determineAtPosition(pos: Position, grid: Grid<Cell>): StateChange?
+    fun determineAtPosition(pos: Position, grid: MutableGrid<Cell>): StateChange?
 }
 
 private class VisibleSeatsCheckGridCellStateChangeDeterminer(
     private val occupiedSeatsThreshold: Int,
-    private val visibleSeatsFindingStrategy: (pos: Position, grid: Grid<Cell>) -> Sequence<Seat>,
+    private val visibleSeatsFindingStrategy: (pos: Position, grid: MutableGrid<Cell>) -> Sequence<Seat>,
 ) : GridCellStateChangeDeterminer {
-    override fun determineAtPosition(pos: Position, grid: Grid<Cell>): StateChange? {
+    override fun determineAtPosition(pos: Position, grid: MutableGrid<Cell>): StateChange? {
         val visibleSeats by lazy { visibleSeatsFindingStrategy(pos, grid) }
         return when (grid[pos]) {
             EmptySeat -> {
@@ -113,7 +113,7 @@ private class EightNearestNeighborsGridCellCellStateChangeDeterminer private con
     )
 
     companion object {
-        private fun visibleSeats(pos: Position, grid: Grid<Cell>): Sequence<Seat> =
+        private fun visibleSeats(pos: Position, grid: MutableGrid<Cell>): Sequence<Seat> =
             sequenceOf(
                 pos.plusCol(1),
                 pos.plusCol(-1),
@@ -138,7 +138,7 @@ private class EightVisibleGridCellCellStateChangeDeterminer private constructor(
     )
 
     companion object {
-        private fun visibleSeats(pos: Position, grid: Grid<Cell>): Sequence<Seat> {
+        private fun visibleSeats(pos: Position, grid: MutableGrid<Cell>): Sequence<Seat> {
             fun cellsInDirection(rowValue: Int, colValue: Int) = sequence {
                 var curPos = pos
                 while (true) {
