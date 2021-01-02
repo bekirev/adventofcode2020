@@ -4,7 +4,7 @@ import com.abekirev.adventofcode2020.grid.MutableGrid
 import com.abekirev.adventofcode2020.grid.MutableMapGrid
 import com.abekirev.adventofcode2020.grid.Position
 import com.abekirev.adventofcode2020.grid.Size
-import com.abekirev.adventofcode2020.grid.allPositions
+import com.abekirev.adventofcode2020.grid.positions
 import com.abekirev.adventofcode2020.grid.contains
 import com.abekirev.adventofcode2020.util.useLinesFromResource
 import java.nio.file.Path
@@ -36,7 +36,7 @@ private fun occupiedSeatsCountAfterEquilibrium(gridCellCellStateChangeDeterminer
             gridCellCellStateChangeDeterminer
         ).equilibriumState()
         finalGrid.size
-            .allPositions()
+            .positions()
             .map(finalGrid::get)
             .count(OccupiedSeat::equals)
     }
@@ -61,7 +61,7 @@ private class SeatingSystem(
         do {
             stateChanges.clear()
             stateChanges.putAll(
-                grid.size.allPositions()
+                grid.size.positions()
                     .mapNotNull { pos ->
                         gridCellStateChangeDeterminer
                             .determineAtPosition(pos, grid)

@@ -12,6 +12,8 @@ interface Grid<T> {
         }.joinToString("\n")
 }
 
+fun <T> Grid<T>.positions() = size.positions()
+
 interface MutableGrid<T> : Grid<T> {
     fun set(updatedCells: Map<Position, T>): MutableGrid<T>
 }
@@ -20,3 +22,14 @@ data class Position(
     val row: Int,
     val col: Int,
 )
+
+operator fun Position.plus(other: Position): Position =
+    Position(
+        row + other.row,
+        col + other.col,
+    )
+
+fun <T> Grid<T>.positionWithValues(): Sequence<Pair<Position, T>> =
+    size.positions().map { position ->
+        position to get(position)
+    }

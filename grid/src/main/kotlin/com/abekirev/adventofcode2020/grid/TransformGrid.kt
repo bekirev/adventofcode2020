@@ -4,8 +4,7 @@ class TransformGrid<T>(
     private val grid: Grid<T>,
     private val posTransFun: (Position) -> Position,
 ) : Grid<T> {
-    override val size: Size
-        get() = grid.size
+    override val size: Size by grid::size
 
     override fun get(row: Int, col: Int): T =
         grid[posTransFun(Position(row, col))]

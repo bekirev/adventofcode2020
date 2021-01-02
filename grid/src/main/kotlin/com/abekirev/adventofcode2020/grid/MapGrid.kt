@@ -9,10 +9,18 @@ class MutableMapGrid<T : Any> private constructor(
         initFun: (row: Int, col: Int) -> T,
     ) : this(
         size,
+        { (row, col) -> initFun(row, col) },
+    )
+
+    constructor(
+        size: Size,
+        initFun: (position: Position) -> T,
+    ) : this(
+        size,
         mutableMapOf<Position, T>().apply {
             size
-                .allPositions()
-                .forEach { pos -> this[pos] = initFun(pos.row, pos.col) }
+                .positions()
+                .forEach { pos -> this[pos] = initFun(pos) }
         },
     )
 
