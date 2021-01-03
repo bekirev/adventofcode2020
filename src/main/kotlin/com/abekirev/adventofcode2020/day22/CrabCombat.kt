@@ -127,12 +127,8 @@ class DeckRepository private constructor(
 ) {
     constructor() : this(hashSetOf())
 
-    fun add(deck: Deck) {
+    fun add(deck: Deck): Boolean =
         set.add(deck.cards.hashCode())
-    }
-
-    operator fun contains(deck: Deck): Boolean =
-        deck.cards.hashCode() in set
 }
 
 class RecursiveCombat(
@@ -143,7 +139,7 @@ class RecursiveCombat(
     private val secondDeckRepository = DeckRepository()
 
     override fun round() {
-        if (firstPlayerDeck in firstDeckRepository || secondPlayerDeck in secondDeckRepository) {
+        if (!(firstDeckRepository.add(firstPlayerDeck) and secondDeckRepository.add(secondPlayerDeck))) {
             firstPlayerDeck.add(listOf(
                 firstPlayerDeck.drawTopCard() ?: throw IllegalStateException("First player has no cards"),
                 secondPlayerDeck.drawTopCard() ?: throw IllegalStateException("Second player has no cards"),
@@ -164,8 +160,6 @@ class RecursiveCombat(
                 }
             }
         }
-        firstDeckRepository.add(firstPlayerDeck)
-        secondDeckRepository.add(secondPlayerDeck)
     }
 }
 
