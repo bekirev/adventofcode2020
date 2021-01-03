@@ -1,5 +1,6 @@
 package com.abekirev.adventofcode2020.day16
 
+import com.abekirev.adventofcode2020.util.findCoverage
 import com.abekirev.adventofcode2020.util.product
 import com.abekirev.adventofcode2020.util.useLinesFromResource
 import java.nio.file.Path
@@ -130,32 +131,3 @@ fun Rule.toNumberCheck(): NumberCheck {
     )
 }
 
-fun <T, C> findCoverage(
-    possibleVariants: Map<T, Set<C>>,
-): Map<T, C> {
-    tailrec fun findCoverage(
-        variants: MutableMap<T, MutableSet<C>>,
-        result: MutableMap<T, C>,
-    ): MutableMap<T, C> = when (variants.size) {
-        0 -> result
-        else -> {
-            val minEntry = variants.minByOrNull {
-                it.value.size
-            }!!
-            val c = minEntry.value.first()
-            variants.remove(minEntry.key)
-            variants.values.forEach { it.remove(c) }
-            result[minEntry.key] = c
-            findCoverage(
-                variants,
-                result,
-            )
-        }
-    }
-    return findCoverage(
-        possibleVariants.mapValuesTo(mutableMapOf()) { (_, value) ->
-            value.toMutableSet()
-        },
-        mutableMapOf(),
-    )
-}

@@ -71,3 +71,33 @@ inline fun <T, K, V, C : MutableCollection<V>, M : MutableMap<in K, C>> Sequence
 
 val <T> List<T>.tail: List<T>
     get() = if (isEmpty()) emptyList() else subList(1, size)
+
+fun <T, C> findCoverage(
+    possibleVariants: Map<T, Set<C>>,
+): Map<T, C> {
+    tailrec fun findCoverage(
+        variants: MutableMap<T, MutableSet<C>>,
+        result: MutableMap<T, C>,
+    ): MutableMap<T, C> = when (variants.size) {
+        0 -> result
+        else -> {
+            val minEntry = variants.minByOrNull {
+                it.value.size
+            }!!
+            val c = minEntry.value.first()
+            variants.remove(minEntry.key)
+            variants.values.forEach { it.remove(c) }
+            result[minEntry.key] = c
+            findCoverage(
+                variants,
+                result,
+            )
+        }
+    }
+    return findCoverage(
+        possibleVariants.mapValuesTo(mutableMapOf()) { (_, value) ->
+            value.toMutableSet()
+        },
+        mutableMapOf(),
+    )
+}

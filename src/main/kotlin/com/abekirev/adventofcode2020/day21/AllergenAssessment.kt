@@ -1,5 +1,6 @@
 package com.abekirev.adventofcode2020.day21
 
+import com.abekirev.adventofcode2020.util.findCoverage
 import com.abekirev.adventofcode2020.util.useLinesFromResource
 import java.nio.file.Path
 import java.util.stream.Collectors
@@ -7,21 +8,34 @@ import kotlin.streams.asStream
 
 fun main() {
     partOne()
+    partTwo()
 }
 
-fun partOne() {
+fun partOne() =
     println(
         Path.of("input", "day21", "input.txt").useLinesFromResource { lines ->
             lines.countIngredientsEntriesWithoutAllergens()
         }
     )
-}
+
+fun partTwo() =
+    println(
+        Path.of("input", "day21", "input.txt").useLinesFromResource { lines ->
+            findCoverage(lines.food().ingredientsByAllergens())
+                .entries
+                .sortedBy { it.key }
+                .joinToString(",") { it.value }
+        }
+    )
 
 fun Sequence<String>.countIngredientsEntriesWithoutAllergens(): Int {
-    val food = map(FoodParserImpl(FoodStringSplitterImpl, IngredientsParserImpl, AllergenParserImpl)::parse).toList()
+    val food = food().toList()
     val ingredientsWithAllergens = food.asSequence().ingredientsByAllergens().ingredientsWithAllergens().toSet()
     return food.asSequence().countNonAllergicIngredientsEntries(ingredientsWithAllergens)
 }
+
+fun Sequence<String>.food(): Sequence<Food> =
+    map(FoodParserImpl(FoodStringSplitterImpl, IngredientsParserImpl, AllergenParserImpl)::parse)
 
 typealias Ingredient = String
 typealias Allergen = String
