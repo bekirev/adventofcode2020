@@ -5,23 +5,31 @@ import java.nio.file.Path
 
 fun main() {
     partOne()
+    partTwo()
+}
+
+val tilesFlipper = Path.of("input", "day24", "input.txt").useLinesFromResource { lines ->
+    lines
+        .map(String::parseDirections)
+        .map(Sequence<HexagonalDirection>::toPosition)
+        .fold(TilesFlipper()) { counter, position ->
+            counter.flip(position)
+            counter
+        }
 }
 
 private fun partOne() {
-    println(
-        Path.of("input", "day24", "input.txt").useLinesFromResource { lines ->
-            lines
-                .map(String::parseDirections)
-                .map(Sequence<HexagonalDirection>::toPosition)
-                .fold(BlackTilesCounter()) { counter, position ->
-                    counter.flip(position)
-                    counter
-                }.blackTilesCount
-        }
-    )
+    println(tilesFlipper.blackTilesCount)
 }
 
-class BlackTilesCounter {
+private fun partTwo() {
+    repeat(100) {
+        tilesFlipper.flip()
+    }
+    println(tilesFlipper.blackTilesCount)
+}
+
+class TilesFlipper {
     private val blackTiles: MutableSet<HexagonalPosition> = HashSet()
 
     fun flip(hexagonalPosition: HexagonalPosition) {
@@ -30,7 +38,29 @@ class BlackTilesCounter {
         }
     }
 
+    fun flip() {
+        val nextBlackTiles = sequenceOf(
+            blackTiles.asSequence()
+                .map(HexagonalPosition::neighbors)
+                .flatMap(Set<HexagonalPosition>::asSequence)
+                .filterNot(blackTiles::contains)
+                .filter { whiteTilePosition ->
+                    whiteTilePosition.blackNeighborsTilesCount() == 2
+                },
+            blackTiles.asSequence()
+                .filter { blackTilePosition ->
+                    val blackNeighborsTilesCount = blackTilePosition.blackNeighborsTilesCount()
+                    !(blackNeighborsTilesCount == 0 || blackNeighborsTilesCount > 2)
+                }
+        ).flatten().toSet()
+        blackTiles.clear()
+        blackTiles.addAll(nextBlackTiles)
+    }
+
     val blackTilesCount: Int by blackTiles::size
+
+    private fun HexagonalPosition.blackNeighborsTilesCount(): Int =
+        neighbors.count(blackTiles::contains)
 }
 
 fun String.parseDirections(): Sequence<HexagonalDirection> = sequence {
@@ -65,6 +95,10 @@ data class HexagonalPosition(
 ) {
     companion object {
         val ZERO = HexagonalPosition(0, 0)
+    }
+
+    val neighbors: Set<HexagonalPosition> by lazy {
+        HexagonalDirection.values().mapTo(mutableSetOf()) { move(it) }
     }
 }
 
