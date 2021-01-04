@@ -11,14 +11,14 @@ fun main() {
     partTwo()
 }
 
-fun partOne() =
+private fun partOne() =
     println(
         Path.of("input", "day21", "input.txt").useLinesFromResource { lines ->
             lines.countIngredientsEntriesWithoutAllergens()
         }
     )
 
-fun partTwo() =
+private fun partTwo() =
     println(
         Path.of("input", "day21", "input.txt").useLinesFromResource { lines ->
             findCoverage(lines.food().ingredientsByAllergens())

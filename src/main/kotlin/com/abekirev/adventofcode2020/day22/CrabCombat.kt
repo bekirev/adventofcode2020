@@ -12,7 +12,7 @@ fun main() {
     partTwo()
 }
 
-fun partOne() =
+private fun partOne() =
     println(
         CombatGame(
             firstPlayerDeck(),
@@ -20,7 +20,7 @@ fun partOne() =
         ).winnerDeck().score()
     )
 
-fun partTwo() =
+private fun partTwo() =
     println(
         RecursiveCombat(
             firstPlayerDeck(),
