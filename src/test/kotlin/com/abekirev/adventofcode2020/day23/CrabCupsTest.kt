@@ -5,7 +5,7 @@ import io.kotest.data.blocking.forAll
 import io.kotest.data.row
 import io.kotest.matchers.shouldBe
 
-class CrabCups : ShouldSpec({
+class CrabCupsTest : ShouldSpec({
     should("return labels after 1 element after given number of moves") {
         forAll(
             row(listOf(3, 8, 9, 1, 2, 5, 4, 6, 7), 10, listOf(9, 2, 6, 5, 8, 3, 7, 4)),
