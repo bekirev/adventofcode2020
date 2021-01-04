@@ -122,6 +122,4 @@ class AllergenAssessmentTest : ShouldSpec({
             "sqjhc mxmxvkd sbzzf (contains fish)",
         ).countIngredientsEntriesWithoutAllergens() shouldBe 5
     }
-    should("") {
-    }
 })
